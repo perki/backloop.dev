@@ -1,4 +1,4 @@
-name: Renew SSL certificate and publish it to www.backloop.dev
+name: Renew SSL certificate and publish it to backloop.dev
 
 on:
   schedule:

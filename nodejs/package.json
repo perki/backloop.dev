@@ -1,0 +1,46 @@
+{
+  "name": "backloop.dev",
+  "version": "1.0.0",
+  "description": "Loopback domain and SSL certificates",
+  "keywords": [
+    "SSL",
+    "localhost",
+    "loopback",
+    "Express",
+    "HTTPS",
+    "Vue.js",
+    "Proxy",
+    "CORS",
+    "Same-origin policy"
+  ],
+  "homepage": "https://github.com/perki/backloop.dev",
+  "bugs": {
+    "url": "https://github.com/perki/backloop.dev/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git@github.com:perki/backloop.dev.git"
+  },
+  "license": "BSD-3-Clause",
+  "author": {
+    "name": "Perki"
+  },
+  "main": "src/index.js",
+  "bin": {
+    "backloop.dev": "bin/webserver.js",
+    "backloop.dev-proxy": "bin/proxy.js",
+    "backloop.dev-update": "bin/update.js"
+  },
+  "scripts": {
+    "postinstall": "node bin/update.js",
+    "lint": "semistandard",
+    "start": "node src/webserver/main.js",
+    "proxy": "node src/webserver/proxy.js"
+  },
+  "dependencies": {
+    "express": "^4.18.1"
+  },
+  "devDependencies": {
+    "semistandard": "^16.0.1"
+  }
+}
