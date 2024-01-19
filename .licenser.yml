@@ -1,3 +1,5 @@
+# This file is user par source-licenser to apply license information
+# Usage: `npx source-licenser -c .licenser.yml ./` 
 files:
   "**/*.js":
     header:

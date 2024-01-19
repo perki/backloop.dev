@@ -8,7 +8,7 @@ Loopback domain and SSL certificates:
 
 Any subdomain of `*.backloop.dev` points to `localhost`!
 
-**Exception:** `www.backloop.dev`, which points to a page where you can download the certificates.
+**Exception:** `backloop.dev`, which points to a page where you can download the certificates.
 
 
 ## Why ?
@@ -56,6 +56,8 @@ Manually update the certificates:
 ```
 backloop.dev-update
 ```
+
+To specify in which directory the certificates are store set the environement var `BACKLOOP_DEV_CERTS_DIR`.
 
 ### Certificate files
 

@@ -6,8 +6,19 @@ const fs = require('fs');
 const path = require('path');
 const https = require('https');
 
-const certsPath = path.resolve(__dirname, '../certs/');
+const certsPath = process.env.BACKLOOP_DEV_CERTS_DIR || path.resolve(__dirname, '../certs/');
+
+if (! fs.existsSync(certsPath)) {
+  if (process.env.BACKLOOP_DEV_CERTS_DIR) {
+    console.error(`Error! env var BACKLOOP_DEV_CERTS_DIR is defined with value: [${process.env.BACKLOOP_DEV_CERTS_DIR}] but directory does not exists`);  
+  } else {
+    console.error(`Error! directory ${certsPath} does not exists`);  
+  }
+  process.exit(1);
+}
+
 const packPath = path.resolve(certsPath, 'pack.json');
+console.log(`Using ${certsPath} to store certificates files.`);
 
 function updateAndLoad (done) {
   try {
