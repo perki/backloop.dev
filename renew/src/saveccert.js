@@ -1,3 +1,7 @@
+/**
+ * @license
+ * [BSD-3-Clause](https://github.com/perki/backloop.dev/blob/main/LICENSE)
+ */
 const { write } = require('./files');
 
 function save (domain, certificate, certificateKey) {

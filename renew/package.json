@@ -4,11 +4,11 @@
   "private": true,
   "description": "Renew and publish `*.backloop.dev` wildcard SSL certificate",
   "license": "BSD-3-Clause",
-  "author": "Perki",
+  "author": "Perki (https://backloop.dev)",
   "main": "src/index.js",
   "scripts": {
-    "start": "node src/index.js",
-    "lint": "semistandard"
+    "lint": "semistandard",
+    "start": "node src/index.js"
   },
   "dependencies": {
     "acme-client": "^5.0.0",

@@ -135,4 +135,4 @@ Pull requests are welcome.
 
 ## License
 
-[BSD-3-Clause](LICENSE.md)
+[BSD-3-Clause](https://github.com/perki/backloop.dev/blob/main/LICENSE)

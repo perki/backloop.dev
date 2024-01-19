@@ -1,3 +1,7 @@
+/**
+ * @license
+ * [BSD-3-Clause](https://github.com/perki/backloop.dev/blob/main/LICENSE)
+ */
 const https = require('https');
 const path = require('path');
 const fs = require('fs');

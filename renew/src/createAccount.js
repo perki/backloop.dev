@@ -1,3 +1,7 @@
+/**
+ * @license
+ * [BSD-3-Clause](https://github.com/perki/backloop.dev/blob/main/LICENSE)
+ */
 const acme = require('acme-client');
 
 const IS_PRODUCTION = process.env.IS_PRODUCTION || false; // set to true when going to production

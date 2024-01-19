@@ -22,9 +22,7 @@
     "url": "git@github.com:perki/backloop.dev.git"
   },
   "license": "BSD-3-Clause",
-  "author": {
-    "name": "Perki"
-  },
+  "author": "Perki (https://backloop.dev)",
   "main": "src/index.js",
   "bin": {
     "backloop.dev": "bin/webserver.js",
@@ -34,8 +32,8 @@
   "scripts": {
     "postinstall": "node bin/update.js",
     "lint": "semistandard",
-    "start": "node src/webserver/main.js",
-    "proxy": "node src/webserver/proxy.js"
+    "proxy": "node src/webserver/proxy.js",
+    "start": "node src/webserver/main.js"
   },
   "dependencies": {
     "express": "^4.18.1"

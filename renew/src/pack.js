@@ -1,3 +1,7 @@
+/**
+ * @license
+ * [BSD-3-Clause](https://github.com/perki/backloop.dev/blob/main/LICENSE)
+ */
 const { read, write } = require('./files');
 const acme = require('acme-client');
 

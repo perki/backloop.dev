@@ -43,3 +43,8 @@ to generate new SSL certificates into `docs/`
 
 Add `IS_PRODUCTION=true` to use Let's Encrypt's production API **which has a call limit!**
 
+
+
+## License
+
+[BSD-3-Clause](https://github.com/perki/backloop.dev/blob/main/LICENSE)

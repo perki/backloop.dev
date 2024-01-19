@@ -18,9 +18,16 @@ All `*.backloop.dev` hostnames point to `127.0.0.1`.
 
 ## The files
 
+SSL Certificates are updated weekly. 
+
 - [backloop.dev-cert.crt](backloop.dev-cert.crt) : The certificate
 - [backloop.dev-key.pem](backloop.dev-key.pem) : The key
 - [backloop.dev-ca.crt](backloop.dev-ca.crt) : Certificate of authority
 - [backloop.dev-bundle.crt](backloop.dev-bundle.crt) : Bundle of key + ca
 - [pack.json](pack.json) : All this packed in a json file
 
+
+
+## License
+
+[BSD-3-Clause](https://github.com/perki/backloop.dev/blob/main/LICENSE)

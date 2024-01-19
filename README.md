@@ -15,7 +15,12 @@ All `*.backloop.dev` hostnames point to `127.0.0.1`.
 - [Renew](./renew) Code that takes care of generating regularly certificates on Letsencrypt and publish them.
 - [NodeJS](./nodejs) NPM package for usage in Node apps and command line tool to server local files or proxy web sites.
 
+## CONTRIBUTION ARE WELCOME
 
 ## LICENSE
 
 BSD-3-Clause
+
+## License
+
+[BSD-3-Clause](https://github.com/perki/backloop.dev/blob/main/LICENSE)
