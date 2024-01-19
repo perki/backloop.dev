@@ -1,6 +1,6 @@
 # `backloop.dev` 
 
-Loopback domain and SSL certs.
+Loopback domain and SSL certs to handle HTTPS on localhost. 
 
 ## Why ?
 
