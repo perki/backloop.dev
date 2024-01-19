@@ -49,7 +49,7 @@ app.use(function (req, res) {
   const options = await httpsOptionsPromise();
   https.createServer(options, app).listen(port);
   console.log(`Server started on port ${port} serving files in '${dirPath}'\n` +
-    `You can open https://l.backloop.dev:${port}/`);
+    `You can open https://whatever.backloop.dev:${port}/`);
 
 })();
 

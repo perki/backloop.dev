@@ -41,13 +41,13 @@ npm install backloop.dev
 
 (Don't forget to prefix commands with `npx` if not installed globally.)
 
-Start a webserver serving the contents of a directory on `https://l.backloop.dev:<port>/`:
+Start a webserver serving the contents of a directory on `https://whatever.backloop.dev:<port>/`:
 
 ```
 backloop.dev <path> [<port>]
 ```
 
-Start a proxy on `https://l.backloop.dev:<port>/`:
+Start a proxy on `https://whatever.backloop.dev:<port>/`: 
 
 ```
 backloop.dev-proxy <target host>[:<target port>] [<port>]
@@ -131,7 +131,7 @@ Enable local HTTPS for development:
 // consider  `await require('backloop.dev').httpsOptionsPromise()``
 const loopbackOptions = require('backloop.dev').httpsOptions();
 loopbackOptions.https = true;
-loopbackOptions.host = 'l.backloop.dev';
+loopbackOptions.host = 'whatever.backloop.dev';
 
 module.exports = {
   // ...your options...
@@ -139,7 +139,7 @@ module.exports = {
 };
 ```
 
-Now `vue-cli-service serve` will be served on `https://l.backloop.dev`
+Now `vue-cli-service serve` will be served on `https://whatever.backloop.dev`
 
 
 ## Contributing

@@ -32,7 +32,7 @@ httpsOptionsAsync(function (err, httpsOptions) {
   if (err) { console.error(err); return; }
   https.createServer(httpsOptions, onRequest).listen(port);
   console.log(`Proxy started on port ${port} serving http://${hostname}:${hostport}\n` +
-  `You can open https://l.backloop.dev:${port}/`);
+  `You can open https://whatever.backloop.dev:${port}/`);
 });
 
 function onRequest (clientReq, clientRes) {
