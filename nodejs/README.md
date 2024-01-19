@@ -91,6 +91,23 @@ httpsOptionsAsync(function (err, httpsOptions) {
 });
 ```
 
+Or (check and update before with a Promise):
+
+```js
+const https = require('https');
+const httpsOptionsPromise = require('backloop.dev').httpsOptionsPromise;
+
+(async () => {
+
+  const httpsOptions = await httpsOptionsAsync();
+  https.createServer(httpsOptions, (req, res) => {
+    res.writeHead(200);
+    res.end('hello world\n');
+  }).listen(8443);
+
+})();
+```
+
 #### Express
 
 ```js
@@ -111,13 +128,14 @@ httpsOptionsAsync(function (err, httpsOptions) {
 Enable local HTTPS for development:
 
 ```js
-const recLaOptions = require('backloop.dev').httpsOptions();
-recLaOptions.https = true;
-recLaOptions.host = 'l.backloop.dev';
+// consider  `await require('backloop.dev').httpsOptionsPromise()``
+const loopbackOptions = require('backloop.dev').httpsOptions();
+loopbackOptions.https = true;
+loopbackOptions.host = 'l.backloop.dev';
 
 module.exports = {
   // ...your options...
-  devServer: recLaOptions
+  devServer: loopbackOptions
 };
 ```
 

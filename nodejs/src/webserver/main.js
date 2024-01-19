@@ -9,7 +9,7 @@ const fs = require('fs');
 const express = require('express');
 const app = express();
 
-const { httpsOptions } = require('..');
+const { httpsOptionsPromise } = require('..');
 
 // -- read the arguments
 if (process.argv.length < 3) {
@@ -45,11 +45,16 @@ app.use(function (req, res) {
     'Served by <a href="https://backloop.dev">backloop.dev</a>');
 });
 
-https.createServer(httpsOptions(), app).listen(port);
-console.log(`Server started on port ${port} serving files in '${dirPath}'\n` +
-  `You can open https://l.backloop.dev:${port}/`);
+(async () => {
+  const options = await httpsOptionsPromise();
+  https.createServer(options, app).listen(port);
+  console.log(`Server started on port ${port} serving files in '${dirPath}'\n` +
+    `You can open https://l.backloop.dev:${port}/`);
 
-function exitWithTip (tip) {
+})();
+
+
+function exitWithTip(tip) {
   console.error(`Error: ${tip}\n` +
     `Usage: ${path.basename(process.argv[1])} <path> [<port>]`);
   process.exit(0);

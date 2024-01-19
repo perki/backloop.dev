@@ -31,6 +31,8 @@ if (isNaN(hostport) || (hostport < 1 || hostport > 65535)) {
 httpsOptionsAsync(function (err, httpsOptions) {
   if (err) { console.error(err); return; }
   https.createServer(httpsOptions, onRequest).listen(port);
+  console.log(`Proxy started on port ${port} serving http://${hostname}:${hostport}\n` +
+  `You can open https://l.backloop.dev:${port}/`);
 });
 
 function onRequest (clientReq, clientRes) {
@@ -81,5 +83,4 @@ function exitWithTip (tip) {
   process.exit(0);
 }
 
-console.log(`Proxy started on port ${port} serving http://${hostname}:${hostport}\n` +
-  `You can open https://l.backloop.dev:${port}/`);
+

@@ -20,51 +20,51 @@ if (! fs.existsSync(certsPath)) {
 const packPath = path.resolve(certsPath, 'pack.json');
 console.log(`Using ${certsPath} to store certificates files.`);
 
-function updateAndLoad (done) {
-  try {
-    const actual = load(' Auto updating ');
-    if (actual != null && actual.expirationDays > 0) {
-      return done(null, actual);
-    }
-
-    fetch(function (err, res) {
-      if (err) return done(err);
-      const expDays = expirationDays(res.info.notAfter);
-      if (expDays < 0) {
-        console.log('Downloaded backloop.dev certificate expired -- open an issue on https://github.com/perki/backloop.dev');
-        return done(null, actual);
-      }
-
-      fs.writeFileSync(path.resolve(certsPath, 'backloop.dev-bundle.crt'), res.cert + '\n' + res.ca);
-      fs.writeFileSync(path.resolve(certsPath, 'backloop.dev-ca.crt'), res.ca);
-      fs.writeFileSync(path.resolve(certsPath, 'backloop.dev-cert.crt'), res.cert);
-      fs.writeFileSync(path.resolve(certsPath, 'backloop.dev-key.pem'), res.key);
-      fs.writeFileSync(path.resolve(certsPath, 'pack.json'), JSON.stringify(res, null, 2));
-
-      console.log('Updated backloop.dev certificate, expires in ' + expDays + ' days');
-      res.expirationDays = expDays;
-      return done(null, res);
-    });
-  } catch (e) {
-    done(e);
+async function updateAndLoad () {
+  const actual = loadFromLocalDirectory(' Auto updating ');
+  if (actual != null && actual.expirationDays > 0) {
+    return actual;
   }
+
+  const res = await fetchPack();
+
+  const expDays = expirationDays(res.info.notAfter);
+  if (expDays < 0) {
+    console.log('Downloaded backloop.dev certificate expired -- open an issue on https://github.com/perki/backloop.dev');
+    return done(null, actual);
+  }
+
+  fs.writeFileSync(path.resolve(certsPath, 'backloop.dev-bundle.crt'), res.cert + '\n' + res.ca);
+  fs.writeFileSync(path.resolve(certsPath, 'backloop.dev-ca.crt'), res.ca);
+  fs.writeFileSync(path.resolve(certsPath, 'backloop.dev-cert.crt'), res.cert);
+  fs.writeFileSync(path.resolve(certsPath, 'backloop.dev-key.pem'), res.key);
+  fs.writeFileSync(path.resolve(certsPath, 'pack.json'), JSON.stringify(res, null, 2));
+
+  console.log('Updated backloop.dev certificate, expires in ' + expDays + ' days');
+  res.expirationDays = expDays;
+  return res;
 }
 
-function fetch (done) {
-  https.get('https://backloop.dev/pack.json', function (res) {
-    let data = '';
-    res.on('data', function (c) { data += c; });
-    res.on('end', function () {
-      try {
-        return done(null, JSON.parse(data));
-      } catch (e) {
-        done(new Error('Invalid response ' + data));
-      }
-    });
-  }).on('error', function (err) { done(err); });
+/**
+ * @returns Promise<CertsPack>
+ */
+function fetchPack () {
+  return new Promise(async (resolve, reject) => {
+    https.get('https://backloop.dev/pack.json', function (res) {
+      let data = '';
+      res.on('data', function (c) { data += c; });
+      res.on('end', function () {
+        try {
+          return resolve(JSON.parse(data));
+        } catch (e) {
+          reject(new Error('Invalid response ' + data));
+        }
+      });
+    }).on('error', reject);
+  });
 }
 
-function load (msgOnNeedUpdate) {
+function loadFromLocalDirectory (msgOnNeedUpdate) {
   if (!fs.existsSync(packPath)) {
     console.log('backloop.dev certificate not present. ' + msgOnNeedUpdate);
     return null;
@@ -89,5 +89,5 @@ function expirationDays (stringDate) {
 
 module.exports = {
   updateAndLoad,
-  load
+  loadFromLocalDirectory
 };
