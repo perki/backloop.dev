@@ -22,9 +22,11 @@ But making requests to **HTTPS APIs** from **HTTP** sites on **localhost** would
 
 ## Update: where are the certificates?
 
-Certificates are not bundled with the npm package, but downloaded and updated from [backloop.dev](https://backloop.dev) at installation and runtime, or manually with `backloop.dev-update`.
+Certificates are not bundled with the npm package, but downloaded and updated from [backloop.dev](https://backloop.dev) at installation and runtime, or manually with `backloop.dev-update`. To specify in which directory the certificates should be stored set the environement var `BACKLOOP_DEV_CERTS_DIR`.
 
-Note: If the certificates are outdated and loaded synchronously with  `require('backloop.dev').httpsOptions()` (see usage below), they will be updated and the service stopped, so it can be rebooted manually.
+Note: If the certificates are outdated and loaded synchronously with  `require('backloop.dev').httpsOptions()` (see usage below), they will be updated and the service stopped, so it can be rebooted manually. 
+
+Prefer `await require('backloop.dev').httpsOptionsPromise()` to avoid having to reboot.
 
 
 ## Usage
@@ -56,8 +58,6 @@ Manually update the certificates:
 ```
 backloop.dev-update
 ```
-
-To specify in which directory the certificates are store set the environement var `BACKLOOP_DEV_CERTS_DIR`.
 
 ### Certificate files
 
