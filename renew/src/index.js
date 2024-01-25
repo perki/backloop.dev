@@ -44,7 +44,6 @@ const ACME_ACCOUNT_URL = process.env.ACME_ACCOUNT_URL;
   });
 
 
-  // const certificate = read(['docs', DOMAIN + '-bundle.crt']);
   savecert(DOMAIN, certificate, certificateKey);
   await pack(DOMAIN);
   console.log('DONE');

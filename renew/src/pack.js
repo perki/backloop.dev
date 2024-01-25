@@ -8,12 +8,12 @@ const acme = require('acme-client');
 async function pack (domain) {
   const res = {
     domain: domain,
-    cert: read(['../docs', domain + '-cert.crt']),
-    ca: read(['../docs', domain + '-ca.crt']),
-    key: read(['../docs', domain + '-key.pem'])
+    cert: read(['./gh-pages', domain + '-cert.crt']),
+    ca: read(['./gh-pages', domain + '-ca.crt']),
+    key: read(['./gh-pages', domain + '-key.pem'])
   };
   res.info = await acme.forge.readCertificateInfo(res.cert);
-  write(['../docs', 'pack.json'], JSON.stringify(res, null, 2));
+  write(['./gh-pages', 'pack.json'], JSON.stringify(res, null, 2));
 }
 
 module.exports = pack;
