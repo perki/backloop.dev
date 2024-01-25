@@ -16,9 +16,15 @@ jobs:
 
     steps:
     - name: Checkout master branch
-      uses: actions/checkout@v3
+      uses: actions/checkout@v4
       with:
         fetch-depth: 0
+
+    - name: Checkout gh-pages branch
+      uses: actions/checkout@v4
+      with:
+        path: renew/gh-pages
+        ref: gh-pages
 
     - name: Setup node
       uses: actions/setup-node@v2
@@ -42,3 +48,4 @@ jobs:
         # Whether to use the --force option on `git add`, in order to bypass eventual gitignores
         force: false
         message: 'update cert'
+        cwd: ./renew/gh-pages

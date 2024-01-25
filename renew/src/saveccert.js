@@ -5,13 +5,13 @@
 const { write } = require('./files');
 
 function save (domain, certificate, certificateKey) {
-  write(['../docs', domain + '-key.pem'], certificateKey.toString());
-  write(['../docs', domain + '-bundle.crt'], certificate);
+  write(['./gh-pages', domain + '-key.pem'], certificateKey.toString());
+  write(['./gh-pages', domain + '-bundle.crt'], certificate);
   // strip bundle in ca + cert
   const FirstEnd = certificate.indexOf('-----END CERTIFICATE-----');
   const SecondBegin = certificate.indexOf('-----BEGIN CERTIFICATE-----', FirstEnd);
-  write(['../docs', domain + '-cert.crt'], certificate.substring(0, SecondBegin - 1));
-  write(['../docs', domain + '-ca.crt'], certificate.substring(SecondBegin));
+  write(['./gh-pages', domain + '-cert.crt'], certificate.substring(0, SecondBegin - 1));
+  write(['./gh-pages', domain + '-ca.crt'], certificate.substring(SecondBegin));
 }
 
 module.exports = save;
