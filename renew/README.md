@@ -44,6 +44,11 @@ to generate new SSL certificates into `docs/`
 Add `IS_PRODUCTION=true` to use Let's Encrypt's production API **which has a call limit!**
 
 
+## CONTRIBUTING
+
+- Pull requests are welcome
+
+You may want to contribute to this repository to make it work for your own domain name or to support validation on other registar (DNS services) than gandi.net
 
 ## License
 

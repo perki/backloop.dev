@@ -1,12 +1,14 @@
 {
   "name": "backloop.dev",
-  "version": "1.0.3",
+  "version": "1.0.4",
   "description": "Loopback domain and SSL certificates for HTTPS on localhost",
   "keywords": [
     "SSL",
     "localhost",
     "loopback",
     "Express",
+    "Mixed Content",
+    "local development",
     "HTTPS",
     "Vue.js",
     "Proxy",

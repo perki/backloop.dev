@@ -2,40 +2,41 @@
 
 [![npm](https://img.shields.io/npm/v/backloop.dev)](https://www.npmjs.com/package/backloop.dev) [![License](https://img.shields.io/badge/License-BSD_3--Clause-blue.svg)](https://opensource.org/licenses/BSD-3-Clause)
 
-Loopback domain and SSL certificates:
+Do SSL HTTPS requests on **Localhost** using a domain and SSL certificates pointing to your local environment.
 
 **https://\<any subdomain>.backloop.dev/ → https://localhost/**
 
 Any subdomain of `*.backloop.dev` points to `localhost`!
+
+--------------------------------------------------
 
 **Exception:** `backloop.dev`, which points to a page where you can download the certificates.
 
 
 ## Why ?
 
-To locally develop web applications that intensively use AJAX REST requests and need localhost https (SSL).
+**backloop.deb** solves [mixed-content](https://developer.mozilla.org/en-US/docs/Web/Security/Mixed_content) issues when developing a WebApp or Backend on local environement while accessing ressources on remote HTTPS sources. 
 
-Browsers enforce the [same-origin policy](https://developer.mozilla.org/en-US/docs/Web/Security/Same-origin_policy) mechanism that restricts the loading of resources from another origin. This can be allowed by sending correct [Cross-Origin Resource Sharing (CORS)](https://developer.mozilla.org/en-US/docs/Web/HTTP/CORS) headers.
+The issue is often raised by the [same-origin policy](https://developer.mozilla.org/en-US/docs/Web/Security/Same-origin_policy) mechanism that restricts the loading of resources from another origin unless this can be allowed by sending correct [Cross-Origin Resource Sharing (CORS)](https://developer.mozilla.org/en-US/docs/Web/HTTP/CORS) headers. 
 
-But making requests to **HTTPS APIs** from **HTTP** sites on **localhost** would not be possible without changing security options on your browser, which is why backloop.dev provides an SSL certificates with a full loopback domain, to let anyone benefit from a signed certificate on **localhost**.
+Which anyway will fall-back on the must-have "non-mixed-content" (No HTTP & HTTPS) 
 
+But making requests to **HTTPS APIs** from **HTTP** sites on **localhost** would not be possible without changing security options on your browser, which is why **backloop.dev** provides SSL certificates with a full loopback domain, to let anyone benefit from a signed certificate on **localhost**.
 
-## Update: where are the certificates?
+## Where are the certificates?
 
 Certificates are not bundled with the npm package, but downloaded and updated from [backloop.dev](https://backloop.dev) at installation and runtime, or manually with `backloop.dev-update`. To specify in which directory the certificates should be stored set the environement var `BACKLOOP_DEV_CERTS_DIR`.
 
-Note: If the certificates are outdated and loaded synchronously with  `require('backloop.dev').httpsOptions()` (see usage below), they will be updated and the service stopped, so it can be rebooted manually. 
-
-Prefer `await require('backloop.dev').httpsOptionsPromise()` to avoid having to reboot.
-
+If the certificates are outdated they are checked and updated at boot.
 
 ## Usage
 
 ### Installation
 
 ```
-npm install backloop.dev
+npm install backloop.dev [-g]
 ```
+Add `-g` to use `backloop.dev` and `backloop.dev-proxy` globally.
 
 ### Command line
 
@@ -61,23 +62,11 @@ backloop.dev-update
 
 ### Certificate files
 
-You can also directly use the certificates files on [backloop.dev](https://backloop.dev):
+You can download the certificates files on [backloop.dev](https://backloop.dev) for your own usage.
 
 ### From a node app
 
 #### Pure Node.js
-
-```js
-const https = require('https');
-const options = require('backloop.dev').httpsOptions();
-
-https.createServer(options, (req, res) => {
-  res.writeHead(200);
-  res.end('hello world\n');
-}).listen(8443);
-```
-
-Or (check and update before):
 
 ```js
 const https = require('https');
@@ -91,7 +80,7 @@ httpsOptionsAsync(function (err, httpsOptions) {
 });
 ```
 
-Or (check and update before with a Promise):
+Or with promises.
 
 ```js
 const https = require('https');
@@ -99,13 +88,25 @@ const httpsOptionsPromise = require('backloop.dev').httpsOptionsPromise;
 
 (async () => {
 
-  const httpsOptions = await httpsOptionsAsync();
+  const httpsOptions = await httpsOptionsPromise();
   https.createServer(httpsOptions, (req, res) => {
     res.writeHead(200);
     res.end('hello world\n');
   }).listen(8443);
 
 })();
+```
+
+The following is not recommended as it will crash your app if certificates are expired. Thus it will refresh them for your next boot ;). 
+
+```js
+const https = require('https');
+const options = require('backloop.dev').httpsOptions();
+
+https.createServer(options, (req, res) => {
+  res.writeHead(200);
+  res.end('hello world\n');
+}).listen(8443);
 ```
 
 #### Express
@@ -128,7 +129,7 @@ httpsOptionsAsync(function (err, httpsOptions) {
 Enable local HTTPS for development:
 
 ```js
-// consider  `await require('backloop.dev').httpsOptionsPromise()``
+// consider  `await require('backloop.dev').httpsOptionsPromise()`
 const loopbackOptions = require('backloop.dev').httpsOptions();
 loopbackOptions.https = true;
 loopbackOptions.host = 'whatever.backloop.dev';
@@ -141,17 +142,25 @@ module.exports = {
 
 Now `vue-cli-service serve` will be served on `https://whatever.backloop.dev`
 
+## Security 
+
+What if `*.backloop.dev` DNS A and AAAA entries are not pointing to `127.0.0.1` and `::1` but to another IP (malicious ones)?
+Then your HTTPS requests will not end-up on your machine, but on this malicious servers. 
+
+Even, if this is very unlikely to happend, you may want to be on the safe side by adding `<what you need>.backloop.dev` in your `/etc/hosts` file.
+
+```
+127.0.0.1 localhost whatever.backloop.dev ... 
+::1 localhost whatever.backloop.dev ... 
+```
 
 ## Contributing
-
-`npm run start` starts the webserver (see `backloop.dev` CLI command above)
-
-`npm run proxy` starts the proxy (see `backloop.dev-proxy` CLI command above)
 
 `npm run lint` lints the code with [Semi-Standard](https://github.com/standard/semistandard).
 
 Pull requests are welcome.
 
+The code to generate, publish and renew the certificates is [here on github](https://github.com/perki/backloop.dev/tree/main/renew)
 
 ## License
 

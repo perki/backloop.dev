@@ -1,2 +1,3 @@
 renew/node_modules
 renew/secret*.env.sh
+.DS_Store
