@@ -12,7 +12,7 @@ Any subdomain of `*.backloop.dev` points to `localhost`!
 
 ## Why ?
 
-**backloop.deb** solves [mixed-content](https://developer.mozilla.org/en-US/docs/Web/Security/Mixed_content) issues when developing a WebApp or Backend on local environement while accessing ressources on remote HTTPS sources. 
+**backloop.dev** solves [mixed-content](https://developer.mozilla.org/en-US/docs/Web/Security/Mixed_content) issues when developing a WebApp or Backend on local environement while accessing ressources on remote HTTPS sources. 
 
 The issue is often raised by the [same-origin policy](https://developer.mozilla.org/en-US/docs/Web/Security/Same-origin_policy) mechanism that restricts the loading of resources from another origin unless this can be allowed by sending correct [Cross-Origin Resource Sharing (CORS)](https://developer.mozilla.org/en-US/docs/Web/HTTP/CORS) headers. 
 

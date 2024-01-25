@@ -1,7 +1,7 @@
 {
   "name": "backloop.dev",
-  "version": "1.0.4",
-  "description": "Loopback domain and SSL certificates for HTTPS on localhost",
+  "version": "1.0.5",
+  "description": "Local HTTPS development with *.backloop.dev pointing to localhost and SSL certificates",
   "keywords": [
     "SSL",
     "localhost",
