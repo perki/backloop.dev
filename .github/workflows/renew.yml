@@ -1,6 +1,7 @@
 name: Renew SSL certificate and publish it to backloop.dev
 
 on:
+  push:
   schedule:
     # each Thursday at 10:30
     - cron:  "30 10 * * 4"
@@ -46,6 +47,6 @@ jobs:
         author_name: Perki
         author_email: ${{ secrets.BACKLOOP_EMAIL }}
         # Whether to use the --force option on `git add`, in order to bypass eventual gitignores
-        force: false
+        # force: false
         message: 'update cert'
         cwd: ./renew/gh-pages
