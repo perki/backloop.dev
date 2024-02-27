@@ -18,7 +18,6 @@ if (! fs.existsSync(certsPath)) {
 }
 
 const packPath = path.resolve(certsPath, 'pack.json');
-console.log(`Using ${certsPath} to store certificates files.`);
 
 async function updateAndLoad () {
   const actual = loadFromLocalDirectory(' Auto updating ');
@@ -41,6 +40,7 @@ async function updateAndLoad () {
   fs.writeFileSync(path.resolve(certsPath, 'pack.json'), JSON.stringify(res, null, 2));
 
   console.log('Updated backloop.dev certificate, expires in ' + expDays + ' days');
+  console.log(`Using ${certsPath} to store certificates files.`);
   res.expirationDays = expDays;
   return res;
 }
