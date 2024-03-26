@@ -1,6 +1,6 @@
 {
   "name": "backloop.dev",
-  "version": "1.0.6",
+  "version": "2.0.1",
   "description": "Local HTTPS development with *.backloop.dev pointing to localhost and SSL certificates",
   "keywords": [
     "SSL",
@@ -10,7 +10,8 @@
     "Mixed Content",
     "local development",
     "HTTPS",
-    "Vue.js",
+    "VueJs",
+    "ViteJs",
     "Proxy",
     "CORS",
     "Same-origin policy"
@@ -26,6 +27,13 @@
   "license": "BSD-3-Clause",
   "author": "Perki (https://backloop.dev)",
   "main": "src/index.js",
+  "module": "src/index.mjs",
+  "exports": {
+      ".": {
+          "import": "./src/index.mjs",
+          "require": "./src/index.js"
+      }
+  },
   "bin": {
     "backloop.dev": "bin/webserver.js",
     "backloop.dev-proxy": "bin/proxy.js",

@@ -66,7 +66,20 @@ You can download the certificates files on [backloop.dev](https://backloop.dev) 
 
 ### From a node app
 
-#### Pure Node.js
+#### ES6 Module
+
+```js
+import httpsOptions from 'backloop.dev';
+import https from 'https';
+
+https.createServer(httpsOptions, (req, res) => {
+  res.writeHead(200);
+  res.end('hello world\n');
+}).listen(8443);
+
+```
+
+#### CommonJS
 
 ```js
 const https = require('https');
@@ -124,23 +137,41 @@ httpsOptionsAsync(function (err, httpsOptions) {
 });
 ```
 
-#### Vue.js
-
-Enable local HTTPS for development:
+#### VueJs
 
 ```js
 // consider  `await require('backloop.dev').httpsOptionsPromise()`
-const loopbackOptions = require('backloop.dev').httpsOptions();
-loopbackOptions.https = true;
-loopbackOptions.host = 'whatever.backloop.dev';
+const backloopHttpsOptions = require('backloop.dev').httpsOptions();
+backloopHttpsOptions.https = true;
+backloopHttpsOptions.host = 'whatever.backloop.dev';
 
 module.exports = {
   // ...your options...
-  devServer: loopbackOptions
+  devServer: backloopHttpsOptions
 };
 ```
 
 Now `vue-cli-service serve` will be served on `https://whatever.backloop.dev`
+
+#### ViteJs
+
+File: `vite.config.js`
+
+```js
+import { defineConfig } from 'vite';
+import backloopHttpsOptions from 'backloop.dev';
+// https://vitejs.dev/config/
+export default defineConfig({
+  server: {
+    port: 4443,
+    host: 'whatever.backloop.dev',
+    https: backloopHttpsOptions
+  },
+  // ... //
+});
+```
+
+Now `npm run dev` will be served on `https://whatever.backloop.dev`
 
 ## Security 
 
