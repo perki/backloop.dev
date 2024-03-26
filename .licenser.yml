@@ -37,6 +37,7 @@ ignore:
 - .vscode
 - renew/node_modules
 - nodejs/node_modules
+- vitejs/node_modules
 - nodejs/bin
 
 license: |

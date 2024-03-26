@@ -8,8 +8,8 @@
   "main": "src/index.js",
   "scripts": {
     "lint": "semistandard",
-    "start": "node src/index.js",
-    "setup": "git clone -b gh-pages git@github.com:perki/backloop.dev.git gh-pages"
+    "setup": "git clone -b gh-pages git@github.com:perki/backloop.dev.git gh-pages",
+    "start": "node src/index.js"
   },
   "dependencies": {
     "acme-client": "^5.0.0",
