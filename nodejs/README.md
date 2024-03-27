@@ -160,7 +160,7 @@ File: `vite.config.js`
 ```js
 import { defineConfig } from 'vite';
 import backloopHttpsOptions from 'backloop.dev';
-// https://vitejs.dev/config/
+
 export default defineConfig({
   server: {
     port: 4443,
@@ -172,6 +172,7 @@ export default defineConfig({
 ```
 
 Now `npm run dev` will be served on `https://whatever.backloop.dev`
+There is a ViteJS plugin that does the very same [vite-plugin-backloop.dev](https://www.npmjs.com/package/vite-plugin-backloop.dev).
 
 ## Security 
 

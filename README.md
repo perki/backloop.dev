@@ -13,6 +13,7 @@ All `*.backloop.dev` hostnames point to `127.0.0.1` and `::1`.
 ## CONTENT 
 
 - [NodeJS](./nodejs) NPM package for usage in Node apps and command line tool to server local files or proxy web sites.
+- [ViteJS](./vitejs/) ViteJS plugin for local development
 - [The certificates](https://backloop.dev) Web page from which you can download the SSL certificates.
 - [Renew](./renew) Code that takes care of generating regularly certificates on Letsencrypt and publish them.
 
