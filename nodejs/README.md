@@ -48,7 +48,8 @@ Start a webserver serving the contents of a directory on `https://whatever.backl
 backloop.dev <path> [<port>]
 ```
 
-Start a proxy on `https://whatever.backloop.dev:<port>/`: 
+Start a proxy on `https://whatever.backloop.dev:<port>/`  
+Note: proxy will add `x-forwarded-proto: https` to headers. This is to support express-session and other services and advertise it was served in https. 
 
 ```
 backloop.dev-proxy <target host>[:<target port>] [<port>]

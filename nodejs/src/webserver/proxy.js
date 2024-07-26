@@ -45,13 +45,16 @@ function onRequest (clientReq, clientRes) {
     console.log('failed: ' + clientReq.url + ' > ' + str);
   }
 
+  // adding forward proto for express-session or other services
+  const newHeaders = Object.assign({'x-forwarded-proto': 'https'}, clientReq.headers);
+
   try {
     const options = {
       hostname: hostname,
       port: hostport,
       path: clientReq.url,
       method: clientReq.method,
-      headers: clientReq.headers
+      headers: newHeaders
     };
 
     const proxy = http.request(options, function (res) {
