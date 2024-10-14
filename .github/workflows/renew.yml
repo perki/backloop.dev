@@ -4,6 +4,7 @@ on:
   schedule:
     # each Thursday at 10:30
     - cron:  "30 10 * * 4"
+  workflow_dispatch:
 
 env:
   GANDI_API_TOKEN: ${{ secrets.GANDI_API_TOKEN }}
