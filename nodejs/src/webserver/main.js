@@ -39,14 +39,6 @@ app.use(function (req, res, next) {
 // Serve static files
 app.use(express.static(dirPath));
 
-// Custom error messages
-app.use(async function (req, res) {
-  console.log(req.url);
-  await fetchAndSave(req.url, res);
-
-  // res.status(404).send(`Could not find file '${req.url}'<br>` +
-  //  'Served by <a href="https://backloop.dev">backloop.dev</a>');
-});
 
 (async () => {
   const options = await httpsOptionsPromise();
@@ -61,26 +53,4 @@ function exitWithTip(tip) {
   console.error(`Error: ${tip}\n` +
     `Usage: ${path.basename(process.argv[1])} <path> [<port>]`);
   process.exit(0);
-}
-
-
-async function saveTofile (filePath, data) {
-  const basePath = '/Users/perki/code/web-sherpy.ch/docs';
-  const fileName = path.basename(filePath);
-  const fullPath = path.resolve(basePath, fileName);
-  const dir = path.dirname(fullPath);
-  if (dir !== '/') fs.mkdirSync(dir, {recursive: true});
-  console.log({fileName, dir, fullPath});
-  fs.writeFileSync(fullPath, data);
-}
-
-async function fetchAndSave (url, res) {
-  const response = await fetch('https://sherpy2.my.canva.site' + url);
-  const contentType = response.headers.get('content-type');
-  const dataA = await response.arrayBuffer();
-  const data = Buffer.from(dataA);
-  await saveTofile(url, data);
-  res.set('content-type', contentType);
-  res.write(data);
-  res.end();
 }

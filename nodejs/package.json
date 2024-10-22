@@ -1,6 +1,6 @@
 {
   "name": "backloop.dev",
-  "version": "2.0.3",
+  "version": "2.0.4",
   "description": "Local HTTPS development with *.backloop.dev pointing to localhost and SSL certificates",
   "keywords": [
     "SSL",
