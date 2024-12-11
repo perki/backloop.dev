@@ -20,7 +20,7 @@ function httpsOptions () {
     return { key: '', cert: '', ca: '' };
   }
   return {
-    key: actual.key,
+    key: actual.key1 + actual.key2,
     cert: actual.cert,
     ca: actual.ca
   };
@@ -46,7 +46,7 @@ async function httpsOptionsPromise() {
   const actual = await check.updateAndLoad();
   if (actual == null) throw(new Error('Failed loading backloop.dev certificate'));
   return {
-    key: actual.key,
+    key: actual.key1 + actual.key2,
     cert: actual.cert,
     ca: actual.ca
   };

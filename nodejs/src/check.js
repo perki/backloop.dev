@@ -36,7 +36,9 @@ async function updateAndLoad () {
   fs.writeFileSync(path.resolve(certsPath, 'backloop.dev-bundle.crt'), res.cert + '\n' + res.ca);
   fs.writeFileSync(path.resolve(certsPath, 'backloop.dev-ca.crt'), res.ca);
   fs.writeFileSync(path.resolve(certsPath, 'backloop.dev-cert.crt'), res.cert);
-  fs.writeFileSync(path.resolve(certsPath, 'backloop.dev-key.pem'), res.key);
+  fs.writeFileSync(path.resolve(certsPath, 'README.md'), 'concatenate keys file in backloop.dev-key.pem to use');
+  fs.writeFileSync(path.resolve(certsPath, 'backloop.dev-key.part1.pem'), res.key1);
+  fs.writeFileSync(path.resolve(certsPath, 'backloop.dev-key.part2.pem'), res.key2);
   fs.writeFileSync(path.resolve(certsPath, 'pack.json'), JSON.stringify(res, null, 2));
 
   console.log('Updated backloop.dev certificate, expires in ' + expDays + ' days');
