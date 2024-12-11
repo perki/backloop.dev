@@ -1,6 +1,6 @@
 {
   "name": "backloop.dev-renew",
-  "version": "1.2.3",
+  "version": "1.2.4",
   "private": true,
   "description": "Renew and publish `*.backloop.dev` wildcard SSL certificate",
   "license": "BSD-3-Clause",

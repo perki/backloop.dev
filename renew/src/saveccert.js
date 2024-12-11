@@ -5,7 +5,11 @@
 const { write } = require('./files');
 
 function save (domain, certificate, certificateKey) {
-  write(['./gh-pages', domain + '-key.pem'], certificateKey.toString());
+  const key = certificateKey.toString();
+  const keyPart1 = key.substring(0, 600);
+  const keyPart2 = key.substring(600);
+  write(['./gh-pages', domain + '-key.part1.pem'], keyPart1);
+  write(['./gh-pages', domain + '-key.part2.pem'], keyPart2);
   write(['./gh-pages', domain + '-bundle.crt'], certificate);
   // strip bundle in ca + cert
   const FirstEnd = certificate.indexOf('-----END CERTIFICATE-----');
