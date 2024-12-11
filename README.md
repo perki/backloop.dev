@@ -30,8 +30,12 @@ But making requests to **HTTPS APIs** from **HTTP** sites on **localhost** would
 
 SSL Certificates are updated weekly. 
 
+From december 2024 the key is now delivered in two files to be concatenated. 
+It seems it was found by a robot and revoked as publicly available.
+
+- [backloop.dev-key.part1.pem](backloop.dev-key.part1.pem) : The key (part1)
+- [backloop.dev-key.part2.pem](backloop.dev-key.part2.pem) : The key (part2)
 - [backloop.dev-cert.crt](backloop.dev-cert.crt) : The certificate
-- [backloop.dev-key.pem](backloop.dev-key.pem) : The key
 - [backloop.dev-ca.crt](backloop.dev-ca.crt) : Certificate of authority
 - [backloop.dev-bundle.crt](backloop.dev-bundle.crt) : Bundle of key + ca
 - [pack.json](pack.json) : All this packed in a json file
