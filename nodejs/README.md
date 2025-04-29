@@ -55,7 +55,7 @@ Note: proxy will add `x-forwarded-proto: https` to headers. This is to support e
 backloop.dev-proxy <target host>[:<target port>] [<port>]
 ```
 
-Manually update the certificates:
+Manually force update of the certificates:
 
 ```
 backloop.dev-update

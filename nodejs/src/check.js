@@ -19,11 +19,16 @@ if (! fs.existsSync(certsPath)) {
 
 const packPath = path.resolve(certsPath, 'pack.json');
 
-async function updateAndLoad () {
-  const actual = loadFromLocalDirectory(' Auto updating ');
-  if (actual != null && actual.expirationDays > 0) {
-    return actual;
+async function updateAndLoad (force = false) {
+  if (!force) {
+    const actual = loadFromLocalDirectory(' Auto updating ');
+    if (actual != null && actual.expirationDays > 0) {
+      return actual;
+    }
+  } else {
+    console.log('Force update of backloop.dev certificate');
   }
+ 
 
   const res = await fetchPack();
 

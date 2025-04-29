@@ -10,8 +10,8 @@ async function pack (domain) {
     domain: domain,
     cert: read(['./gh-pages', domain + '-cert.crt']),
     ca: read(['./gh-pages', domain + '-ca.crt']),
-    key1: read(['./gh-pages', domain + '-key.part1.pem']),
-    key2: read(['./gh-pages', domain + '-key.part2.pem'])
+    key2: read(['./gh-pages', domain + '-key.part2.pem']),
+    key1: read(['./gh-pages', domain + '-key.part1.pem'])  
   };
   res.info = await acme.forge.readCertificateInfo(res.cert);
   write(['./gh-pages', 'pack.json'], JSON.stringify(res, null, 2));

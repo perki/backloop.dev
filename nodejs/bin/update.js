@@ -2,5 +2,5 @@
 const updateAndLoad = require('../src/check').updateAndLoad;
 
 (async () => {
-  await updateAndLoad();
+  await updateAndLoad(true);
 })()
