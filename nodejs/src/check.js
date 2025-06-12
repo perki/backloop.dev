@@ -8,6 +8,8 @@ const https = require('https');
 
 const certsPath = process.env.BACKLOOP_DEV_CERTS_DIR || path.resolve(__dirname, '../certs/');
 
+const versionNum = 1;
+
 if (! fs.existsSync(certsPath)) {
   if (process.env.BACKLOOP_DEV_CERTS_DIR) {
     console.error(`Error! env var BACKLOOP_DEV_CERTS_DIR is defined with value: [${process.env.BACKLOOP_DEV_CERTS_DIR}] but directory does not exists`);  
@@ -20,8 +22,16 @@ if (! fs.existsSync(certsPath)) {
 const packPath = path.resolve(certsPath, 'pack.json');
 
 async function updateAndLoad (force = false) {
+  const actual = loadFromLocalDirectory(' Auto updating ');
+
+  if (actual?.version?.num != null) {
+    if (actual.version.num > versionNum) {
+      console.error('Current package version is not compatible with certification file format.\nUpdate backloop.dev to latest version.\n' + actual.version.message); 
+      process.exit(1);
+    }
+  }
+
   if (!force) {
-    const actual = loadFromLocalDirectory(' Auto updating ');
     if (actual != null && actual.expirationDays > 0) {
       return actual;
     }
