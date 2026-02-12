@@ -1,6 +1,6 @@
 {
   "name": "vite-plugin-backloop.dev",
-  "version": "1.0.8",
+  "version": "1.0.9",
   "description": "Use backloop.dev for ViteJS development with https on localhost ",
   "keywords": [
     "vite-plugin",
