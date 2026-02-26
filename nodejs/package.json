@@ -43,6 +43,7 @@
   },
   "scripts": {
     "postinstall": "node bin/update.js",
+    "test": "node --test test/*.test.js",
     "lint": "semistandard",
     "proxy": "node src/webserver/proxy.js",
     "start": "node src/webserver/main.js"
