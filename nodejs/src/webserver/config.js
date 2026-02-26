@@ -42,30 +42,74 @@ async function startFromConfig (configPath) {
     process.exit(1);
   }
 
-  // Build routing map: hostname -> handler
+  // Build routing map: hostname -> [ { pathPrefix, handler, type, target } ]
+  // Keys can be "hostname" (same as "hostname/") or "hostname/path/"
   const routes = {};
   const configDir = path.dirname(resolvedPath);
+  const routeDisplayLines = [];
 
-  for (const [name, entry] of Object.entries(config.hostnames)) {
+  for (const [key, entry] of Object.entries(config.hostnames)) {
+    // Split key into hostname and pathPrefix
+    const slashIdx = key.indexOf('/');
+    let hostname, pathPrefix;
+    if (slashIdx === -1) {
+      hostname = key;
+      pathPrefix = '/';
+    } else {
+      hostname = key.substring(0, slashIdx);
+      pathPrefix = key.substring(slashIdx);
+      // Enforce trailing slash
+      if (!pathPrefix.endsWith('/')) {
+        console.error(`Error: path prefix for '${key}' must end with '/' (got '${pathPrefix}')`);
+        process.exit(1);
+      }
+    }
+
+    let handler, type, target;
     if (entry.path) {
       const dirPath = path.resolve(configDir, entry.path);
       if (!fs.existsSync(dirPath) || !fs.lstatSync(dirPath).isDirectory()) {
-        console.error(`Error: '${dirPath}' (for hostname '${name}') is not existing or not a directory`);
+        console.error(`Error: '${dirPath}' (for '${key}') is not existing or not a directory`);
         process.exit(1);
       }
-      routes[name] = { handler: createStaticHandler(dirPath), type: 'static', target: dirPath };
+      handler = createStaticHandler(dirPath);
+      type = 'static';
+      target = dirPath;
     } else if (entry.proxy) {
-      routes[name] = { handler: createProxyHandler(entry.proxy), type: 'proxy', target: entry.proxy };
+      handler = createProxyHandler(entry.proxy);
+      type = 'proxy';
+      target = entry.proxy;
     } else {
-      console.error(`Error: hostname '${name}' must have either "path" or "proxy" property`);
+      console.error(`Error: '${key}' must have either "path" or "proxy" property`);
       process.exit(1);
+    }
+
+    if (!routes[hostname]) routes[hostname] = [];
+    routes[hostname].push({ pathPrefix, handler, type, target });
+  }
+
+  // Sort each hostname's routes by pathPrefix length descending (longest first)
+  for (const hostname of Object.keys(routes)) {
+    routes[hostname].sort(function (a, b) { return b.pathPrefix.length - a.pathPrefix.length; });
+    for (const r of routes[hostname]) {
+      const label = r.type === 'static' ? `files in '${r.target}'` : `proxy to ${r.target}`;
+      routeDisplayLines.push(`  https://${hostname}.backloop.dev:${port}${r.pathPrefix} -> ${label}`);
     }
   }
 
-  const hostnames = Object.keys(routes);
-  if (hostnames.length === 0) {
+  const knownHostnames = Object.keys(routes);
+  if (knownHostnames.length === 0) {
     console.error('Error: no hostnames configured');
     process.exit(1);
+  }
+
+  // Strip pathPrefix from req.url before passing to handler
+  function stripPrefix (prefix, handler) {
+    if (prefix === '/') return handler;
+    return function (req, res) {
+      req.url = req.url.slice(prefix.length - 1) || '/';
+      handler(req, res);
+    };
   }
 
   // Start the server
@@ -74,18 +118,30 @@ async function startFromConfig (configPath) {
     // Extract hostname from Host header: "tom.backloop.dev:6667" -> "tom"
     const hostHeader = req.headers.host || '';
     const hostPart = hostHeader.split(':')[0]; // remove port
-    const name = hostPart.replace(/\.backloop\.dev$/, '');
+    const hostname = hostPart.replace(/\.backloop\.dev$/, '');
 
-    const route = routes[name];
-    if (!route) {
+    const hostRoutes = routes[hostname];
+    if (!hostRoutes) {
       console.log(`${req.method} ${hostHeader}${req.url} 404 (unknown host)`);
       res.writeHead(404, { 'Content-Type': 'text/plain' });
       res.end('Not Found\n\nConfigured hostnames:\n' +
-        hostnames.map(h => `  https://${h}.backloop.dev:${port}/`).join('\n') + '\n');
+        knownHostnames.map(h => `  https://${h}.backloop.dev:${port}/`).join('\n') + '\n');
       return;
     }
 
-    route.handler(req, res);
+    // Find the longest matching pathPrefix
+    const reqPath = req.url.split('?')[0];
+    for (const route of hostRoutes) {
+      if (route.pathPrefix === '/' || reqPath.startsWith(route.pathPrefix) || reqPath + '/' === route.pathPrefix) {
+        stripPrefix(route.pathPrefix, route.handler)(req, res);
+        return;
+      }
+    }
+
+    // No matching path prefix
+    console.log(`${req.method} ${hostHeader}${req.url} 404 (no matching path)`);
+    res.writeHead(404, { 'Content-Type': 'text/plain' });
+    res.end('Not Found');
   });
 
   server.on('error', function (err) {
@@ -99,10 +155,7 @@ async function startFromConfig (configPath) {
 
   server.listen(port, function () {
     console.log(`Multi-host server started on port ${port}\nRoutes:`);
-    for (const [name, route] of Object.entries(routes)) {
-      const label = route.type === 'static' ? `files in '${route.target}'` : `proxy to ${route.target}`;
-      console.log(`  https://${name}.backloop.dev:${port}/ -> ${label}`);
-    }
+    routeDisplayLines.forEach(function (line) { console.log(line); });
   });
 }
 

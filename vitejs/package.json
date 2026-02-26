@@ -1,6 +1,6 @@
 {
   "name": "vite-plugin-backloop.dev",
-  "version": "1.0.9",
+  "version": "1.0.10",
   "description": "Use backloop.dev for ViteJS development with https on localhost ",
   "keywords": [
     "vite-plugin",
@@ -23,7 +23,7 @@
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "dependencies": {
-    "backloop.dev": "^3.0.1"
+    "backloop.dev": "^3.0.2"
   },
   "devDependencies": {
     "vite": "^5.0.0"

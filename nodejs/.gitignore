@@ -1,3 +1,4 @@
 node_modules
 certs/*
 !certs/.gitkeep
+./config.json

@@ -3,4 +3,4 @@ const updateAndLoad = require('../src/check').updateAndLoad;
 
 (async () => {
   await updateAndLoad(true);
-})()
+})();

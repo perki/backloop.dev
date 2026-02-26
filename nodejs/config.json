@@ -1,0 +1,7 @@
+{
+  "port": 7654,
+  "hostnames": {
+    "tom/static/": { "path": "./" },
+    "tom/": { "proxy": "https://perki.com" }
+  }
+}

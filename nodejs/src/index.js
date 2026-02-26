@@ -42,9 +42,9 @@ function httpsOptionsAsync (done) {
 /**
  * @returns Promise<httpsOptions>
  */
-async function httpsOptionsPromise() {
+async function httpsOptionsPromise () {
   const actual = await check.updateAndLoad();
-  if (actual == null) throw(new Error('Failed loading backloop.dev certificate'));
+  if (actual == null) throw (new Error('Failed loading backloop.dev certificate'));
   return {
     key: actual.key1 + actual.key2,
     cert: actual.cert,

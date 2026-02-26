@@ -1,20 +1,22 @@
 {
   "name": "backloop.dev",
-  "version": "3.0.1",
+  "version": "3.0.2",
   "description": "Local HTTPS development with *.backloop.dev pointing to localhost and SSL certificates",
   "keywords": [
     "SSL",
+    "HTTPS",
     "localhost",
     "loopback",
-    "Express",
-    "Mixed Content",
     "local development",
-    "HTTPS",
-    "VueJs",
-    "ViteJs",
-    "Proxy",
+    "proxy",
+    "reverse proxy",
+    "static server",
+    "multi-host",
+    "SNI",
+    "mixed content",
     "CORS",
-    "Same-origin policy"
+    "same-origin policy",
+    "certificates"
   ],
   "homepage": "https://github.com/perki/backloop.dev",
   "bugs": {
@@ -44,11 +46,11 @@
   "scripts": {
     "postinstall": "node bin/update.js",
     "test": "node --test test/*.test.js",
-    "lint": "semistandard",
+    "lint": "eslint .",
     "proxy": "node src/webserver/proxy.js",
     "start": "node src/webserver/main.js"
   },
   "devDependencies": {
-    "semistandard": "^16.0.1"
+    "neostandard": "^0.12.2"
   }
 }

@@ -10,11 +10,11 @@ const certsPath = process.env.BACKLOOP_DEV_CERTS_DIR || path.resolve(__dirname, 
 
 const versionNum = 1;
 
-if (! fs.existsSync(certsPath)) {
+if (!fs.existsSync(certsPath)) {
   if (process.env.BACKLOOP_DEV_CERTS_DIR) {
-    console.error(`Error! env var BACKLOOP_DEV_CERTS_DIR is defined with value: [${process.env.BACKLOOP_DEV_CERTS_DIR}] but directory does not exists`);  
+    console.error(`Error! env var BACKLOOP_DEV_CERTS_DIR is defined with value: [${process.env.BACKLOOP_DEV_CERTS_DIR}] but directory does not exists`);
   } else {
-    console.error(`Error! directory ${certsPath} does not exists`);  
+    console.error(`Error! directory ${certsPath} does not exists`);
   }
   process.exit(1);
 }
@@ -26,7 +26,7 @@ async function updateAndLoad (force = false) {
 
   if (actual?.version?.num != null) {
     if (actual.version.num > versionNum) {
-      console.error('Current package version is not compatible with certification file format.\nUpdate backloop.dev to latest version.\n' + actual.version.message); 
+      console.error('Current package version is not compatible with certification file format.\nUpdate backloop.dev to latest version.\n' + actual.version.message);
       process.exit(1);
     }
   }
@@ -38,14 +38,13 @@ async function updateAndLoad (force = false) {
   } else {
     console.log('Force update of backloop.dev certificate');
   }
- 
 
   const res = await fetchPack();
 
   const expDays = expirationDays(res.info.notAfter);
   if (expDays < 0) {
     console.log('Downloaded backloop.dev certificate expired -- open an issue on https://github.com/perki/backloop.dev');
-    return done(null, actual);
+    return actual;
   }
 
   fs.writeFileSync(path.resolve(certsPath, 'backloop.dev-bundle.crt'), res.cert + '\n' + res.ca);
@@ -66,7 +65,7 @@ async function updateAndLoad (force = false) {
  * @returns Promise<CertsPack>
  */
 function fetchPack () {
-  return new Promise(async (resolve, reject) => {
+  return new Promise((resolve, reject) => {
     https.get('https://backloop.dev/pack.json', function (res) {
       let data = '';
       res.on('data', function (c) { data += c; });

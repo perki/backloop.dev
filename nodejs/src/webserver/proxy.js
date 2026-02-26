@@ -50,7 +50,10 @@ function createProxyHandler (targetUrl) {
     }
 
     // adding forward proto for express-session or other services
-    const newHeaders = Object.assign({ 'x-forwarded-proto': 'https' }, clientReq.headers);
+    // replace host header with target hostname so remote servers respond correctly
+    const newHeaders = Object.assign({ 'x-forwarded-proto': 'https' }, clientReq.headers, {
+      host: target.hostname + (target.port === 80 || target.port === 443 ? '' : ':' + target.port)
+    });
 
     try {
       const options = {
@@ -121,7 +124,6 @@ module.exports.runCLI = runCLI;
 function exitWithTip (tip) {
   console.error(`Error: ${tip}\n` +
     `Usage: ${path.basename(process.argv[1])} <target> [<port>]\n` +
-    `  target: http://host[:port][/path] or https://host[:port][/path] or host[:port]`);
+    '  target: http://host[:port][/path] or https://host[:port][/path] or host[:port]');
   process.exit(0);
 }
-

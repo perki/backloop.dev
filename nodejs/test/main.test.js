@@ -42,7 +42,7 @@ describe('createStaticHandler', function () {
     return new Promise(function (resolve, reject) {
       https.get({
         hostname: 'localhost',
-        port: port,
+        port,
         path: urlPath,
         rejectUnauthorized: false
       }, function (res) {
