@@ -5,7 +5,6 @@
 import backloopHttpsOptions from 'backloop.dev';
 
 function backloop(hostname = 'whatever', port) {
-  console.log({hostname});
   return {
     name: 'backloop.dev',
     apply: 'serve',
