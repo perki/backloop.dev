@@ -26,6 +26,12 @@ But making requests to **HTTPS APIs** from **HTTP** sites on **localhost** would
 - [GitHub repository](https://github.com/perki/backloop.dev)
 - [npm package](https://www.npmjs.com/package/backloop.dev)
 
+#### For AI agents:
+
+- [llms.txt](https://backloop.dev/llms.txt) — LLM-readable summary of this site and project
+- [llms-full.txt](https://backloop.dev/llms-full.txt) — complete usage documentation in plain markdown
+- [pack.json](https://backloop.dev/pack.json) — machine-readable certificate bundle (cert, CA, split key, validity dates)
+
 ## The files
 
 SSL Certificates are updated weekly. 

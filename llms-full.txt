@@ -1,0 +1,202 @@
+# backloop.dev — complete documentation
+
+> Free HTTPS on localhost: every subdomain of `*.backloop.dev` resolves to `127.0.0.1` and `::1`, and a publicly shared, Let's Encrypt-signed wildcard SSL certificate for `*.backloop.dev` is published on https://backloop.dev and renewed weekly.
+
+`https://<any subdomain>.backloop.dev/` → your local machine, with a valid certificate. The only exception is the apex `backloop.dev`, which serves the certificate download page.
+
+## Why
+
+Browsers block mixed content (HTTP resources on HTTPS pages) and enforce the same-origin policy. When developing locally, calling an HTTPS API from an HTTP localhost page (or the reverse) produces mixed-content and CORS errors. The usual workarounds are disabling browser security (risky, and the work needs refactoring before publishing) or self-signed certificates (require installing a custom root CA in every browser/system, plus /etc/hosts editing for multiple hostnames).
+
+backloop.dev removes the friction: a real domain whose subdomains all point to loopback, with a real, browser-trusted certificate that everyone can share. The certificate is intentionally public — it only ever secures traffic to 127.0.0.1.
+
+## Certificate files (stable URLs)
+
+Certificates are renewed weekly via GitHub Actions (Let's Encrypt, DNS challenge). The private key is published split in two parts; concatenate them to use it.
+
+- https://backloop.dev/pack.json — everything in one JSON: `cert`, `ca`, `key1`, `key2` (key = key1 + key2), `info.notBefore`, `info.notAfter`. Preferred for programmatic use.
+- https://backloop.dev/backloop.dev-key.part1.pem — private key part 1
+- https://backloop.dev/backloop.dev-key.part2.pem — private key part 2
+- https://backloop.dev/backloop.dev-cert.crt — certificate
+- https://backloop.dev/backloop.dev-ca.crt — CA chain
+- https://backloop.dev/backloop.dev-bundle.crt — cert + CA bundle
+
+## npm package: backloop.dev
+
+```
+npm install backloop.dev [-g]
+```
+
+Certificates are not bundled: they are downloaded from https://backloop.dev/pack.json at install (postinstall) and refreshed at runtime when close to expiry. Storage location defaults to the package's `certs/` directory; override with the env var `BACKLOOP_DEV_CERTS_DIR` (directory must exist). In offline/sandboxed environments use `npm install --ignore-scripts` and pre-seed `BACKLOOP_DEV_CERTS_DIR` with a valid `pack.json`.
+
+### CLI: static file server
+
+Serve a directory on `https://whatever.backloop.dev:<port>/` (prefix with `npx` if not installed globally):
+
+```bash
+backloop.dev <path> [<port>]
+# example:
+backloop.dev ./dist 4443
+# open https://myapp.backloop.dev:4443/
+```
+
+### CLI: reverse proxy
+
+Proxy `https://whatever.backloop.dev:<port>/` to a backend. Supports `http://` and `https://` targets with optional base path. Adds `x-forwarded-proto: https` for express-session and similar.
+
+```bash
+backloop.dev-proxy <target> [<port>]
+# examples:
+backloop.dev-proxy localhost:3000
+backloop.dev-proxy https://localhost:8443/api 4443
+```
+
+### CLI: multi-host gateway (one HTTPS entry point for a whole dev stack)
+
+One process, one port, many hostnames (SNI-based). Backend services and dev servers run plain HTTP; the gateway terminates TLS. The config file is committable, so a whole team shares the same clean URLs without per-service port numbers.
+
+```bash
+backloop.dev --config=<config.json>
+```
+
+```json
+{
+  "port": 7654,
+  "hostnames": {
+    "app":   { "path": "./dist" },
+    "api":   { "proxy": "http://localhost:3000/v1" },
+    "admin": { "proxy": "https://anotherwebsite.com:8443" }
+  }
+}
+```
+
+- `https://app.backloop.dev:7654/` serves static files from `./dist`
+- `https://api.backloop.dev:7654/` proxies to `http://localhost:3000/v1`
+- Paths are resolved relative to the config file.
+- With port 443 (may need elevated privileges), URLs have no port at all — just like production.
+
+Path-based routing on a hostname uses `hostname/path/` keys (trailing slash required); the longest matching prefix wins:
+
+```json
+{
+  "port": 7654,
+  "hostnames": {
+    "tom/static/": { "path": "./public" },
+    "tom/":        { "proxy": "http://localhost:3000" }
+  }
+}
+```
+
+`https://tom.backloop.dev:7654/static/app.js` serves `./public/app.js`; `https://tom.backloop.dev:7654/api/users` proxies to `http://localhost:3000/api/users`.
+
+### CLI: certificate update
+
+```bash
+backloop.dev-update
+# choose the storage directory:
+BACKLOOP_DEV_CERTS_DIR=/tmp backloop.dev-update
+```
+
+### Node.js API
+
+ESM:
+
+```js
+import httpsOptions from 'backloop.dev';
+import https from 'https';
+
+https.createServer(httpsOptions, (req, res) => {
+  res.writeHead(200);
+  res.end('hello world\n');
+}).listen(8443);
+```
+
+CommonJS, promise-based (preferred — refreshes the certificate if needed):
+
+```js
+const https = require('https');
+const { httpsOptionsPromise } = require('backloop.dev');
+
+(async () => {
+  const httpsOptions = await httpsOptionsPromise();
+  https.createServer(httpsOptions, (req, res) => {
+    res.writeHead(200);
+    res.end('hello world\n');
+  }).listen(8443);
+})();
+```
+
+Callback flavor:
+
+```js
+const { httpsOptionsAsync } = require('backloop.dev');
+httpsOptionsAsync(function (err, httpsOptions) { /* ... */ });
+```
+
+Synchronous `httpsOptions()` exists but exits the process if the certificate is expired (it refreshes for the next boot) — avoid in long-running tooling.
+
+Express:
+
+```js
+const https = require('https');
+const { httpsOptionsAsync } = require('backloop.dev');
+const express = require('express');
+const app = express();
+
+httpsOptionsAsync(function (err, httpsOptions) {
+  https.createServer(httpsOptions, app).listen(8443);
+});
+```
+
+TypeScript types are included (`HttpsOptions = { key, cert, ca }`).
+
+## npm package: vite-plugin-backloop.dev
+
+```
+npm install vite-plugin-backloop.dev --save-dev
+```
+
+```js
+// vite.config.js
+import { defineConfig } from 'vite';
+import backloop from 'vite-plugin-backloop.dev';
+
+export default defineConfig({
+  plugins: [
+    backloop('myapp')   // optional second argument: port
+  ]
+});
+```
+
+`npm run dev` then serves on `https://myapp.backloop.dev:<port>/`. The plugin applies only to `serve` (dev), never to builds.
+
+Vite can also be configured without the plugin:
+
+```js
+import { defineConfig } from 'vite';
+import backloopHttpsOptions from 'backloop.dev';
+
+export default defineConfig({
+  server: {
+    port: 4443,
+    host: 'whatever.backloop.dev',
+    https: backloopHttpsOptions
+  }
+});
+```
+
+## Security note
+
+If the `*.backloop.dev` DNS entries were ever maliciously repointed away from `127.0.0.1`/`::1`, HTTPS requests would reach those servers instead of your machine. To be safe, pin the hostnames you use in `/etc/hosts`:
+
+```
+127.0.0.1 localhost whatever.backloop.dev
+::1 localhost whatever.backloop.dev
+```
+
+## Links
+
+- Website / certificate downloads: https://backloop.dev
+- GitHub: https://github.com/perki/backloop.dev (BSD-3-Clause)
+- npm: https://www.npmjs.com/package/backloop.dev and https://www.npmjs.com/package/vite-plugin-backloop.dev
+- Renewal infrastructure: https://github.com/perki/backloop.dev/tree/main/renew

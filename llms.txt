@@ -1,0 +1,36 @@
+# backloop.dev
+
+> Free HTTPS on localhost for everyone: every subdomain of `*.backloop.dev` resolves to `127.0.0.1` and `::1`, and a publicly shared, Let's Encrypt-signed wildcard SSL certificate for `*.backloop.dev` is published on this site and renewed weekly. No self-signed certificates, no root CA to install, no browser warnings.
+
+Key facts:
+
+- `https://<anything>.backloop.dev/` reaches the local machine with a valid certificate. The only exception is the apex `backloop.dev`, which serves this download page.
+- The certificate is intentionally public — it only secures loopback traffic. It solves mixed-content and CORS errors when a local app must talk to HTTPS resources (or be HTTPS itself).
+- Certificate files are at stable URLs on this site (see below). The private key is split into two parts that must be concatenated.
+- `https://backloop.dev/pack.json` is the machine-readable bundle: JSON with `cert`, `ca`, `key1`, `key2` (concatenate for the key) and `info.notBefore` / `info.notAfter` validity dates.
+
+## Certificate files
+
+- [pack.json](https://backloop.dev/pack.json): everything in one JSON file (preferred for programmatic use)
+- [backloop.dev-key.part1.pem](https://backloop.dev/backloop.dev-key.part1.pem): private key, part 1
+- [backloop.dev-key.part2.pem](https://backloop.dev/backloop.dev-key.part2.pem): private key, part 2 (concatenate part1 + part2)
+- [backloop.dev-cert.crt](https://backloop.dev/backloop.dev-cert.crt): the certificate
+- [backloop.dev-ca.crt](https://backloop.dev/backloop.dev-ca.crt): certificate authority chain
+- [backloop.dev-bundle.crt](https://backloop.dev/backloop.dev-bundle.crt): cert + CA bundle
+
+## Tooling
+
+- [npm package backloop.dev](https://www.npmjs.com/package/backloop.dev): Node API (`httpsOptionsPromise()` returns `{key, cert, ca}` for `https.createServer`), plus CLI tools: static file server, reverse proxy, and a multi-host HTTPS gateway (one process, one port, many `*.backloop.dev` hostnames via SNI) — with automatic certificate download and refresh.
+- [npm package vite-plugin-backloop.dev](https://www.npmjs.com/package/vite-plugin-backloop.dev): one-line HTTPS for the Vite dev server.
+- [GitHub repository](https://github.com/perki/backloop.dev): source, full documentation and AGENTS.md.
+
+## Docs
+
+- [llms-full.txt](https://backloop.dev/llms-full.txt): complete usage documentation in plain markdown
+- [Full README (raw markdown)](https://raw.githubusercontent.com/perki/backloop.dev/main/nodejs/README.md): canonical package documentation
+
+## Optional
+
+- [Article: Fixing HTTPS for localhost — an all-purpose solution](https://medium.com/dev-genius/fixing-https-for-localhost-an-all-purpose-solution-59fbd2a0e21f): why and how backloop.dev exists
+- [Article: One HTTPS gateway for your entire local dev stack](https://blog.devgenius.io/one-https-gateway-for-your-entire-local-dev-stack-a5459c65bdd1): the v3 multi-host config mode
+- [Renewal infrastructure](https://github.com/perki/backloop.dev/tree/main/renew): how certificates are renewed weekly (Let's Encrypt + GitHub Actions)
