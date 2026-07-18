@@ -16,7 +16,7 @@ The apex domain `backloop.dev` is the only exception: it points to the certifica
 
 | Path | What it is |
 |---|---|
-| `nodejs/` | The `backloop.dev` npm package: Node API (`httpsOptions*`), CLI static server, reverse proxy, multi-host config server, cert updater. Most of the code and docs live here. |
+| `nodejs/` | The `backloop.dev` npm package: Node API (`httpsOptions*`), programmatic multi-host server (`startServer`), CLI static server, reverse proxy, multi-host config server (subdomain + path routing, custom handlers, routing hooks), cert updater. Most of the code and docs live here. |
 | `vitejs/` | The `vite-plugin-backloop.dev` npm package: thin Vite plugin wrapping `nodejs/`. |
 | `renew/` | Certificate renewal infrastructure (Let's Encrypt + Gandi DNS). Runs via GitHub workflow; needs secrets (`ACME_ACCOUNT_*`, `GANDI_API_TOKEN`). **Do not modify unless explicitly asked.** |
 | `.github/workflows/` | Scheduled certificate renewal. |

@@ -57,3 +57,12 @@ module.exports = {
   httpsOptionsAsync,
   httpsOptionsPromise
 };
+
+// Multi-host server API and route-entry helpers (loaded after the exports above
+// so their internal `require('..')` sees the certificate functions).
+const { startServer } = require('./webserver/server');
+const helpers = require('./webserver/helpers');
+module.exports.startServer = startServer;
+module.exports.staticDir = helpers.staticDir;
+module.exports.proxy = helpers.proxy;
+module.exports.redirect = helpers.redirect;

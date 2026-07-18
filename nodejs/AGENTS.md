@@ -22,6 +22,11 @@ const { httpsOptions, httpsOptionsAsync, httpsOptionsPromise } = require('backlo
 - `httpsOptionsAsync(cb)` — callback flavor of the same.
 - `httpsOptions(): {key, cert, ca}` — sync; if the certificate is missing/expired it triggers an update and **exits the process** (works on next start). Avoid in long-running tooling.
 
+Multi-host server API (same engine as `--config`):
+
+- `startServer(config): Promise<https.Server>` — resolves once listening. `config`: `{ port, hostnames, hooks?, baseDir?, httpsOptions?, silent? }`.
+- `staticDir(dir, opts?)`, `proxy(target, opts?)`, `redirect(location, status?)` — route-entry builders.
+
 Types are in `src/index.d.ts`.
 
 ## CLI (npx or global install)
@@ -29,7 +34,7 @@ Types are in `src/index.d.ts`.
 ```bash
 backloop.dev <path> [<port>]              # static file server on https://<any>.backloop.dev:<port>/
 backloop.dev-proxy <target> [<port>]      # reverse proxy to http(s)://host[:port][/path]
-backloop.dev --config=<config.json>       # multi-host: route hostnames/paths to static dirs or proxies
+backloop.dev --config=<config>            # multi-host: route hostnames/paths to static dirs, proxies or handlers
 backloop.dev-update                       # force certificate refresh
 ```
 
@@ -46,7 +51,12 @@ Multi-host config format (paths resolved relative to the config file):
 }
 ```
 
-Keys with a trailing `/` are path prefixes on a hostname; longest prefix wins.
+Routing:
+- Keys with a trailing `/` are path prefixes on a hostname; longest prefix wins; `hostname/` (or bare `hostname`) is the catch-all.
+- The matched prefix is **stripped by default**; set `"strip": false` to keep it. A slash-less path still matches its prefix route; `"redirectToSlash": true` 301s `/x` to `/x/`.
+- Proxy entries accept `transformRequest(headers, req)` / `transformResponse(res, req)`.
+
+`--config` also accepts `.js`/`.cjs`/`.mjs`, which additionally allow: a vanilla `{ handler: (req, res) => {} }` route; `hooks.onRequest` (return `true` to short-circuit), `hooks.route(req)` (custom router), and `use` middleware chains. A JS module exports the config object or a `(helpers) => config` factory.
 
 ## Certificates: where and when
 

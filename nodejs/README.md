@@ -120,7 +120,90 @@ Paths are resolved relative to the config file location.
 }
 ```
 
-Here `https://tom.backloop.dev:7654/static/app.js` serves `./public/app.js`, while `https://tom.backloop.dev:7654/api/users` proxies to `http://localhost:3000/api/users`. The longest matching prefix wins.
+Here `https://tom.backloop.dev:7654/static/app.js` serves `./public/app.js`, while `https://tom.backloop.dev:7654/api/users` proxies to `http://localhost:3000/api/users`.
+
+Routing rules:
+- **Longest matching prefix wins**; `hostname/` (or the bare `hostname`) is the catch-all.
+- **The matched prefix is stripped by default** before the request reaches the handler — `/static/app.js` is served as `/app.js`. Set `"strip": false` to forward the full path (see below).
+- A **slash-less** request matches its prefix route: `/static` reaches the `tom/static/` route rather than falling through to the catch-all.
+- Subdomain hostnames (`app`, `api`) and path hostnames (`tom/...`) can coexist in one config.
+
+##### Per-route options
+
+Each route entry accepts:
+
+| Option | Applies to | Default | Effect |
+|---|---|---|---|
+| `strip` | path routes | `true` | `true` removes the matched prefix before forwarding (like Caddy `handle_path`); `false` keeps it (like Caddy `handle`). |
+| `redirectToSlash` | path routes | `false` | `true` issues a `301` from the slash-less form (`/admin`) to the trailing-slash form (`/admin/`). |
+| `transformRequest` | proxy routes | — | `(headers, req) => headers?` — mutate or replace the outgoing proxy headers. |
+| `transformResponse` | proxy routes | — | `(res, req) => void` — inspect/mutate the upstream response before it is piped back. |
+
+```json
+{
+  "port": 7654,
+  "hostnames": {
+    "rhi/admin/":   { "proxy": "https://localhost:7610", "strip": false },
+    "rhi/patient/": { "proxy": "https://localhost:5620", "redirectToSlash": true },
+    "rhi/":         { "proxy": "https://localhost:5640" }
+  }
+}
+```
+
+This mirrors a single-origin, path-routed edge (Caddy, nginx, an ingress) locally, so same-origin `fetch`, cookies and same-origin links behave as they do in production — with backloop's HTTPS certs and no second proxy.
+
+#### JavaScript config and custom routing
+
+`--config` also accepts `.js`, `.cjs` and `.mjs` files. Because JavaScript can hold functions, this unlocks custom handlers and hooks that JSON cannot express. A module exports a config object, or a `(helpers) => config` factory that receives the `staticDir`, `proxy` and `redirect` builders:
+
+```js
+// backloop.config.js
+module.exports = ({ staticDir, proxy, redirect }) => ({
+  port: 7655,
+  hooks: {
+    // Global pre-hook: return true to signal the response was fully handled.
+    onRequest (req, res) {
+      if (req.url === '/health') { res.end('ok'); return true; }
+    },
+    // Custom router: return a handler to bypass the table, or null to fall through.
+    route (req) {
+      if (req.headers['x-tenant']) return proxy(`https://localhost:${tenantPort(req)}`).handler;
+      return null;
+    }
+  },
+  hostnames: {
+    'app':          staticDir('./dist'),
+    'rhi/admin/':   proxy('https://localhost:7610', { strip: false }),
+    'rhi/old/':     redirect('https://localhost:7610/new'),
+    'rhi/':         { handler: (req, res) => { res.writeHead(200); res.end('custom'); } }
+  }
+});
+```
+
+A route entry may provide a vanilla `handler(req, res)` instead of `path` or `proxy`. Hooks are optional:
+- `hooks.onRequest(req, res)` runs before matching; return `true` when it has answered the request.
+- `hooks.route(req)` returns a handler to fully override the built-in routing, or `null`/`undefined` to fall through to the table.
+- `use` is a middleware chain of `(req, res, next)` functions, accepted both globally (`hooks.use`) and per route (`entry.use`).
+
+#### Programmatic multi-host server
+
+The same engine is available as an API. `startServer(config)` resolves with the `https.Server` once it is listening:
+
+```js
+const { startServer, staticDir, proxy } = require('backloop.dev');
+
+const server = await startServer({
+  port: 7655,
+  hostnames: {
+    app:          staticDir('./dist'),
+    'rhi/admin/': proxy('https://localhost:7610', { strip: false }),
+    'rhi/':       proxy('https://localhost:5640')
+  }
+});
+// server.address().port, server.close(), ...
+```
+
+`config` fields: `port` (default `4443`; `0` picks a free port), `hostnames`, `hooks`, `baseDir` (for relative static paths, default cwd), `httpsOptions` (reuse pre-loaded certs), and `silent` (suppress the startup banner).
 
 #### Certificate update
 

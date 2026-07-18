@@ -33,9 +33,11 @@ function parseTarget (target) {
 /**
  * Create a proxy request handler for the given target URL string.
  * @param {string} targetUrl - e.g. "http://localhost:3000/api" or "localhost:3000"
+ * @param {object} [opts] - optional { transformRequest(headers, req), transformResponse(res, req) } hooks
  * @returns {function} (req, res) request handler
  */
-function createProxyHandler (targetUrl) {
+function createProxyHandler (targetUrl, opts) {
+  opts = opts || {};
   const target = parseTarget(targetUrl);
   const requestFn = target.protocol === 'https' ? https.request : http.request;
 
@@ -51,9 +53,12 @@ function createProxyHandler (targetUrl) {
 
     // adding forward proto for express-session or other services
     // replace host header with target hostname so remote servers respond correctly
-    const newHeaders = Object.assign({ 'x-forwarded-proto': 'https' }, clientReq.headers, {
+    let newHeaders = Object.assign({ 'x-forwarded-proto': 'https' }, clientReq.headers, {
       host: target.hostname + (target.port === 80 || target.port === 443 ? '' : ':' + target.port)
     });
+    if (typeof opts.transformRequest === 'function') {
+      newHeaders = opts.transformRequest(newHeaders, clientReq) || newHeaders;
+    }
 
     try {
       const options = {
@@ -66,6 +71,7 @@ function createProxyHandler (targetUrl) {
       };
 
       const proxy = requestFn(options, function (res) {
+        if (typeof opts.transformResponse === 'function') opts.transformResponse(res, clientReq);
         clientRes.writeHead(res.statusCode, res.headers);
         res.pipe(clientRes, { end: true });
       });
