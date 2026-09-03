@@ -5,6 +5,10 @@
 const { readFileSync, writeFileSync, existsSync } = require('fs');
 const path = require('path');
 
+// Build output directory, relative to `renew/`. Its contents are copied by
+// hand onto the Apache server at Gandi; nothing about it is committed.
+const OUT = '../dist';
+
 function getFilename (filePath) {
   return path.resolve(__dirname, '..', ...filePath);
 }
@@ -24,5 +28,6 @@ function exists (filePath) {
 module.exports = {
   read,
   write,
-  exists
+  exists,
+  OUT
 };

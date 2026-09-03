@@ -1,9 +1,20 @@
-name: Renew SSL certificate and publish it to backloop.dev
+# Certificate renewal — currently NOT operational, and deliberately not scheduled.
+#
+# Since 2026-08-01 Let's Encrypt refuses to issue for this domain:
+#   Cannot issue for "*.backloop.dev": The ACME server refuses to issue a
+#   certificate for this domain name, because it is forbidden by policy
+#
+# The published wildcard is now bought from a commercial CA and the site is
+# hosted on Apache at Gandi, so publication is a manual step: build into
+# `dist/` and copy that directory onto the server. Nothing is committed.
+#
+# This workflow is kept for the ACME plumbing (account, Gandi DNS-01 challenge)
+# in case issuance becomes possible again. It runs only when started by hand,
+# and it publishes nothing — it uploads `dist/` as an artifact for inspection.
+
+name: Renew SSL certificate (manual, Let's Encrypt currently blocks this domain)
 
 on:
-  schedule:
-    # each Two days at 10:30
-    - cron:  "30 10 */2 * *"
   workflow_dispatch:
 
 env:
@@ -16,16 +27,8 @@ jobs:
     runs-on: ubuntu-22.04
 
     steps:
-    - name: Checkout master branch
+    - name: Checkout
       uses: actions/checkout@v4
-      with:
-        fetch-depth: 0
-
-    - name: Checkout gh-pages branch
-      uses: actions/checkout@v4
-      with:
-        path: renew/gh-pages
-        ref: gh-pages
 
     - name: Setup node
       uses: actions/setup-node@v4
@@ -36,17 +39,14 @@ jobs:
       working-directory: ./renew
       run: npm ci
 
-    - name: Generate new certificate
+    - name: Generate new certificate into dist/
       working-directory: ./renew
       # uses env: GANDI_API_TOKEN, ACME_ACCOUNT_URL, ACME_ACCOUNT_KEY
       run: IS_PRODUCTION=true npm start
 
-    - name: Commit and push
-      uses: EndBug/add-and-commit@v9
+    - name: Upload dist/ for manual publication
+      uses: actions/upload-artifact@v4
       with:
-        author_name: Perki
-        author_email: ${{ secrets.BACKLOOP_EMAIL }}
-        # Whether to use the --force option on `git add`, in order to bypass eventual gitignores
-        # force: false
-        message: 'update cert'
-        cwd: ./renew/gh-pages
+        name: backloop.dev-dist
+        path: dist/
+        retention-days: 7

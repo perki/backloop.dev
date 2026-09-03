@@ -1,17 +1,26 @@
 # `backloop.dev` renew
 
-Renew and publish `*.backloop.dev` wildcard SSL certificate with Let's Encrypt and Gandi.
+Renew the `*.backloop.dev` wildcard SSL certificate with Let's Encrypt and Gandi.
 
-- Outputs the certificates to `gh-pages/` branch, published on `https://perki.github.io/backloop.dev-renew/`
-- The published certificates are used by the [backloop.dev](https://github.com/perki/backloop.dev) package
+> **This no longer works.** Since 2026-08-01 Let's Encrypt refuses to issue for
+> this domain — `Cannot issue for "*.backloop.dev": ... forbidden by policy`.
+> The published wildcard is now bought from a commercial CA. The code here is
+> kept for its ACME and Gandi DNS-01 plumbing in case issuance becomes possible
+> again, and for `pack.js`, which is still what builds `pack.json`.
 
-The renewal is managed by GithHub's workflow see (.github/worflows)[../.github/workflows].
+- Outputs the certificate files into `dist/` at the root of this repository.
+- `dist/` is not committed and is not published by any automation: after a run,
+  its contents are copied by hand onto the Apache server at Gandi that serves
+  https://backloop.dev.
+- The published certificates are used by the [backloop.dev](https://github.com/perki/backloop.dev) package.
+
+The workflow in [.github/workflows](../.github/workflows) is manual-only and
+uploads `dist/` as an artifact; it publishes nothing.
 
 
 ## Installation 
 
 - `npm install`
-- `npm run setup` - clone gh-pages branch as a directory 
 
 ## Usage
 
@@ -45,7 +54,7 @@ npm install
 ```
 GANDI_API_TOKEN=${KEY} npm start
 ```
-to generate new SSL certificates into `gh-pages/` (checkout of `gh-pages` branch of this repository)
+to generate new SSL certificates into `dist/` at the root of this repository.
 
 Add `IS_PRODUCTION=true` to use Let's Encrypt's production API **which has a call limit!**
 

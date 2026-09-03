@@ -18,10 +18,10 @@ The apex domain `backloop.dev` is the only exception: it points to the certifica
 |---|---|
 | `nodejs/` | The `backloop.dev` npm package: Node API (`httpsOptions*`), CLI static server, reverse proxy, multi-host config server, cert updater. Most of the code and docs live here. |
 | `vitejs/` | The `vite-plugin-backloop.dev` npm package: thin Vite plugin wrapping `nodejs/`. |
-| `renew/` | Certificate renewal infrastructure (Let's Encrypt + Gandi DNS). Runs via GitHub workflow; needs secrets (`ACME_ACCOUNT_*`, `GANDI_API_TOKEN`). **Do not modify unless explicitly asked.** |
-| `.github/workflows/` | Scheduled certificate renewal. |
-| branch `gh-pages` | The https://backloop.dev website: cert files, `pack.json`, `llms.txt`, `robots.txt`. Jekyll-rendered README. |
-| branch `renew-gh-pages` | Publishing target used by the renewal job. |
+| `renew/` | Certificate renewal infrastructure (Let's Encrypt + Gandi DNS). Writes its output into `dist/`. Let's Encrypt now refuses to issue for this domain, so it cannot complete — see `renew/README.md`. **Do not modify unless explicitly asked.** |
+| `.github/workflows/` | The renewal workflow, manual-only and non-publishing. |
+| `dist/` | The https://backloop.dev website, built locally: `index.html`, cert files, `pack.json`, `llms.txt`, `robots.txt`. Gitignored, and **copied by hand onto the Apache server at Gandi** — there is no deploy automation. |
+| branch `renew-gh-pages` | Dead since 2024; kept only as an archive. |
 
 There is no root `package.json`: `nodejs/`, `vitejs/` and `renew/` are independent npm projects.
 
@@ -58,4 +58,4 @@ When user-facing behavior changes, update all that apply:
 1. `nodejs/README.md` (canonical docs, shipped to npm)
 2. `nodejs/AGENTS.md` and `vitejs/AGENTS.md` (shipped to npm)
 3. Root `README.md`
-4. `gh-pages` branch: `README.md`, `llms.txt`, `llms-full.txt` (the website)
+4. `dist/`: `index.html`, `llms.txt`, `llms-full.txt` (the website) — then copy `dist/` to the Gandi server, since nothing publishes it automatically

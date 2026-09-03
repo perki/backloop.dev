@@ -8,7 +8,6 @@
   "main": "src/index.js",
   "scripts": {
     "lint": "semistandard",
-    "setup": "git clone -b gh-pages git@github.com:perki/backloop.dev.git gh-pages",
     "start": "node src/index.js"
   },
   "dependencies": {
