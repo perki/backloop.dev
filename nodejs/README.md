@@ -62,6 +62,11 @@ directory must already exist.
 They are no longer published at a public URL. Downloading them needs a secret, which
 becomes a path segment on the download URL.
 
+`https://backloop.dev/pack.json` does still answer, but only with the last public
+certificate — revoked on 2026-07-31, expiring 2026-10-29, never renewed. It is left
+there so that installs of version 3 and earlier fail slowly rather than on a 404. Do not
+build anything on it.
+
 ### Configuring the secret
 
 Provide it in any one of these ways. The first one that is set wins:

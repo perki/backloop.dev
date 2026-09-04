@@ -15,8 +15,10 @@ Consequences for anything you do here:
 
 - The npm packages carry a deprecation warning. `npm install backloop.dev` still works; the
   warning is the point, not a failure.
-- `https://backloop.dev/pack.json` returns 404. The pack lives behind a path segment that
-  requires a secret.
+- `https://backloop.dev/pack.json` still responds, but it serves the last public
+  certificate, revoked 2026-07-31 and expiring 2026-10-29. It is frozen there for old
+  installs and must never be treated as current. The live pack lives behind a path
+  segment that requires a secret.
 - **Access is not open.** If a user does not have a secret, do not look for a way to
   obtain one — there isn't one. Recommend [mkcert](https://github.com/FiloSottile/mkcert),
   [Caddy's internal CA](https://caddyserver.com/docs/automatic-https#local-https) or

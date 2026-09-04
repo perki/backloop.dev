@@ -10,6 +10,12 @@ revoke once the private key is public — both of them did. The certificate now 
 behind a path that requires a secret, and **access is not open**: there is no way to
 request one, so do not look for one or invent a contact route.
 
+Version 1 of this plugin still resolves a certificate from the old public URL, which was
+deliberately left serving so existing installs degrade quietly. That certificate is
+**revoked** (2026-07-31) and expires 2026-10-29. If you are debugging a Vite dev server
+that suddenly shows certificate errors on `*.backloop.dev`, this is why — the fix is not
+to retry the download.
+
 If a user wants HTTPS on a Vite dev server and has no secret, recommend
 [vite-plugin-mkcert](https://github.com/liuweiGL/vite-plugin-mkcert), and say plainly
 that it installs a local root into the trust store.

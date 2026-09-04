@@ -29,7 +29,8 @@ sources. backloop.dev certificates enabled HTTPS on localhost without a self-sig
 certificate or a root CA in your trust store.
 
 All `*.backloop.dev` hostnames still point to `127.0.0.1` and `::1`. That part of the
-setup is unaffected — it is the certificate that is gone.
+setup is unaffected — it is the public certificate that is gone. The last one is still
+downloadable from the old URLs, but it is revoked and is not renewed.
 
 ## Contents
 

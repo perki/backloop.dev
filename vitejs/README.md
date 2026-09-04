@@ -20,6 +20,12 @@ Any subdomain of `*.backloop.dev` points to `localhost`!
 > secret to download the certificate, and **access is not open** — there is no way to
 > request one.
 >
+> **On version 1 of this plugin, your dev server is quietly serving a revoked
+> certificate.** The old `backloop.dev/pack.json` was left in place so that existing
+> installs degrade instead of breaking, so nothing has visibly changed for you — but that
+> certificate was revoked on 2026-07-31, it expires on 2026-10-29, and a client that
+> checks revocation already rejects it. Nothing will replace it.
+>
 > **If you want HTTPS on your Vite dev server**, use
 > [vite-plugin-mkcert](https://github.com/liuweiGL/vite-plugin-mkcert) instead. It
 > installs a local root into your trust store, which is the trade-off backloop.dev
