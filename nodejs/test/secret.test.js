@@ -114,7 +114,7 @@ describe('resolveSecret', () => {
   });
 
   it('rejects a malformed secret instead of silently trying the next source', () => {
-    process.env.BACKLOOP_DEV_SECRET = 'too-short';
+    process.env.BACKLOOP_DEV_SECRET = 'tiny';
     writeHomeConfig(JSON.stringify({ secret: VALID }));
     assert.throws(() => resolveSecret(), InvalidSecretError);
   });
@@ -127,6 +127,11 @@ describe('resolveSecret', () => {
 
   it('rejects a secret that is too long', () => {
     assert.throws(() => resolveSecret('a'.repeat(129)), InvalidSecretError);
+  });
+
+  it('accepts the shortest allowed secret and rejects one character less', () => {
+    assert.strictEqual(resolveSecret('a'.repeat(8)), 'a'.repeat(8));
+    assert.throws(() => resolveSecret('a'.repeat(7)), InvalidSecretError);
   });
 });
 

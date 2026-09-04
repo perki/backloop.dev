@@ -14,7 +14,7 @@ const os = require('os');
 
 const DEFAULT_BASE_URL = 'https://backloop.dev';
 
-const SECRET_PATTERN = /^[A-Za-z0-9_-]{16,128}$/;
+const SECRET_PATTERN = /^[A-Za-z0-9_-]{8,128}$/;
 
 const PROJECT_CONFIG = 'backloop.dev.json';
 const HOME_CONFIG = '.backloop.dev.json';
@@ -41,7 +41,7 @@ class MissingSecretError extends Error {
 
 class InvalidSecretError extends Error {
   constructor (source) {
-    super(`The backloop.dev secret from ${source} is malformed: expected 16 to 128 characters, each of A-Z a-z 0-9 _ or -`);
+    super(`The backloop.dev secret from ${source} is malformed: expected 8 to 128 characters, each of A-Z a-z 0-9 _ or -`);
     this.name = 'InvalidSecretError';
   }
 }
