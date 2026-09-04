@@ -54,14 +54,31 @@ echo
 echo "dependencies"
 # The node package's postinstall wants a secret. Without one it prints a notice
 # and exits 0, so this never fails the setup either way.
-( cd "$NODE_DIR" && npm install --silent ) && echo "  backloop.dev-node: installed"
-( cd "$VITE_DIR" && npm install --silent ) && echo "  backloop.dev-vite: installed"
+if ( cd "$NODE_DIR" && npm install --silent ); then
+  echo "  backloop.dev-node: installed"
+else
+  echo "  backloop.dev-node: INSTALL FAILED — run npm install in $NODE_DIR to see why"
+fi
+
+# The plugin's only runtime dependency is the node package, which is replaced by
+# a symlink below, so its node_modules is not needed for anything here. It does
+# fail outright while the plugin requires a version of the node package that is
+# not published yet — normal in the middle of a major — and that must be said
+# rather than swallowed, since the setup otherwise reports success.
+if ( cd "$VITE_DIR" && npm install --silent ) 2>/dev/null; then
+  echo "  backloop.dev-vite: installed"
+else
+  echo "  backloop.dev-vite: dependencies not installed"
+  echo "    Usually because it requires a version of backloop.dev that is not on"
+  echo "    npm yet. Harmless here — the link below is what the plugin resolves."
+fi
 
 echo
 echo "linking the plugin against the local node package"
 # A symlink rather than `npm link`: no global state to clean up later, and the
 # plugin's package.json keeps pointing at the published ^4.0.0, so nothing here
 # can leak into a release.
+mkdir -p "$VITE_DIR/node_modules"          # absent entirely when the install above failed
 rm -rf "$VITE_DIR/node_modules/backloop.dev"
 ln -s "$NODE_DIR" "$VITE_DIR/node_modules/backloop.dev"
 # `exports` in the package does not expose ./package.json, so read the file and
