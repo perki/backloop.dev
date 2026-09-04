@@ -88,6 +88,9 @@ npm run lint      # eslint with neostandard
   which needs network access **and** a configured secret. Without either it prints a
   notice and exits 0 — it must never fail the install. A deliberate `backloop.dev-update`
   exits 1 on the same failure; keep that asymmetry.
+- npm hides lifecycle output unless the script fails, so that postinstall notice is
+  invisible in a normal `npm install` (`--foreground-scripts` reveals it). Whatever a
+  user needs to be told has to be said at first start, not at install time.
 - In a sandboxed or offline environment, install with `npm install --ignore-scripts` and
   pre-seed certificates by pointing `BACKLOOP_DEV_CERTS_DIR` at a directory containing a
   valid `pack.json`. No secret is needed on that path.

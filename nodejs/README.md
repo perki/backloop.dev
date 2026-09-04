@@ -116,9 +116,12 @@ stdin and stdout to be a terminal. In CI, under a process supervisor, or during
 invisible hang — nothing is asked. Pass `interactive: false` to turn it off in a service
 that starts unattended.
 
-Without a secret, installation still succeeds: the postinstall step prints a notice and
-exits cleanly. It is only at runtime, where a missing certificate cannot be worked
-around, that the package fails.
+Without a secret, installation still succeeds. The postinstall step prints a notice
+explaining what to do — but npm hides lifecycle output unless a script fails, so in
+practice you will not see it (`npm install --foreground-scripts` shows it). The moment
+you actually find out is the first start, where you get the prompt above or, if nothing
+is watching, a clear error. That is deliberate: a missing certificate can be fixed later,
+a broken `npm install` cannot.
 
 ### Skipping the download entirely
 

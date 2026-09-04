@@ -116,6 +116,9 @@ Keys with a trailing `/` are path prefixes on a hostname; longest prefix wins.
 - **`postinstall` never fails the install.** `bin/update.js --postinstall` prints a
   notice and exits 0 when there is no secret or the download fails. A deliberate
   `backloop.dev-update` exits 1 on the same failure. Keep that asymmetry.
+- That postinstall notice is effectively invisible: npm only surfaces lifecycle output
+  when a script fails, so it takes `--foreground-scripts` to see it. Do not rely on it to
+  tell anyone anything — the prompt and the runtime error are what people actually meet.
 - The private key comes split in two parts (`key1` + `key2` in `pack.json`); the package
   concatenates them. The split delays naive scanners and nothing more — it is not a
   security measure and should not be described as one.
