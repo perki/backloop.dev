@@ -10,9 +10,8 @@ Loopback domain and SSL certificates for HTTPS on localhost.
 > within about nine hours, Sectigo within about two days. The public service ended on
 > 2026-09-04 and <https://backloop.dev> now explains what happened in full.
 >
-> The project continues as a private setup used by its author. The code is still here
-> and still works, but downloading a certificate now requires a secret, and access is
-> not open.
+> The project continues as a private setup used by its author. The code still works, but
+> downloading a certificate now requires a secret, and access is not open.
 >
 > **Looking for HTTPS on localhost?** Use a local certificate authority:
 > [mkcert](https://github.com/FiloSottile/mkcert),
@@ -32,13 +31,20 @@ All `*.backloop.dev` hostnames still point to `127.0.0.1` and `::1`. That part o
 setup is unaffected — it is the public certificate that is gone. The last one is still
 downloadable from the old URLs, but it is revoked and is not renewed.
 
-## Contents
+## Where the code lives
 
-- [nodejs](./nodejs) — the npm package: Node API, static file server, reverse proxy,
-  multi-host HTTPS gateway. Most of the documentation lives here.
-- [vitejs](./vitejs) — the Vite plugin.
-- [renew](./renew) — certificate renewal infrastructure. Let's Encrypt has blocklisted
-  the domain, so it can no longer complete.
+The two packages were split out of this repository on 2026-09-04, each into a repository
+whose root is the package — npm cannot install a subdirectory of a git repository, and
+being installable by URL is the point.
+
+| | |
+|---|---|
+| [perki/backloop.dev-node](https://github.com/perki/backloop.dev-node) | The `backloop.dev` package: Node API, static file server, reverse proxy, multi-host HTTPS gateway. **The canonical documentation lives there.** |
+| [perki/backloop.dev-vite](https://github.com/perki/backloop.dev-vite) | The `vite-plugin-backloop.dev` plugin. |
+| [renew](./renew) | Certificate renewal infrastructure. Let's Encrypt has blocklisted the domain, so it can no longer complete. |
+
+What is left here is the website served at <https://backloop.dev>, the renewal code, and
+the project-wide notes.
 
 ## Installing
 
@@ -48,13 +54,18 @@ npm install backloop.dev
 
 Every version below 4.0.0 is deprecated, so anyone installing the old public-service
 releases is told what happened. 4.0.0 itself is not — it is the version that works, and
-a warning on every install of it would be noise.
+a warning on every install of it would be noise. Installing straight from the repository
+works too, and is where this is heading:
+
+```bash
+npm install github:perki/backloop.dev-node#v4.0.0
+```
 
 Certificates are downloaded from a path only reachable with a secret. If you have one,
-[nodejs/README.md](./nodejs/README.md#configuring-the-secret) covers the four places it
-can be configured. If you do not, the package installs cleanly and prints a notice
-rather than failing — but it cannot fetch a certificate, and there is no way to request
-one. Use one of the local-CA tools above instead.
+[the package README](https://github.com/perki/backloop.dev-node#configuring-the-secret) covers the places it can be
+configured. If you do not, the package installs cleanly and prints a notice rather than
+failing — but it cannot fetch a certificate, and there is no way to request one. Use one
+of the local-CA tools above instead.
 
 Already hold the certificate files? Point `BACKLOOP_DEV_CERTS_DIR` at a directory
 containing a valid `pack.json` and no secret is needed at all.

@@ -1,6 +1,0 @@
-node_modules
-.DS_Store
-
-# The secret is never committed: these repositories are public.
-backloop.dev.json
-.backloop.dev.json

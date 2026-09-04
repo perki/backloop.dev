@@ -1,4 +1,4 @@
-# AGENTS.md — backloop.dev (monorepo)
+# AGENTS.md — backloop.dev
 
 Guidance for AI coding agents working on this repository.
 
@@ -19,10 +19,10 @@ secret to reach.
 
 Three rules follow, and they matter more than anything else in this file:
 
-1. **The secret must never be committed.** This repository is public and carries the
-   installation instructions, so the obvious mistake is a working default in a README, a
-   test fixture, or a CI workflow. There is no default value anywhere in the tree, and
-   `backloop.dev.json` / `.backloop.dev.json` are gitignored.
+1. **The secret must never be committed.** Every repository involved is public, so the
+   obvious mistake is a working default in a README, a test fixture, or a CI workflow.
+   There is no default value anywhere, and `backloop.dev.json` / `.backloop.dev.json` are
+   gitignored here and in both package repositories.
 2. **Never write a way to obtain a secret.** No email address, no contact route, no
    request form, no "ask the author". Documenting how to *configure* a secret is fine and
    necessary — someone holding one must be able to use it unaided. Documenting how to
@@ -37,77 +37,57 @@ compliant. The key still reaches more than one party, so a CA that learns of it 
 still revoke. Plan on rotation, and on the certificate dying again eventually. This is a
 documented, accepted trade-off.
 
-## What this project is
+## What is where
 
-- DNS: **any** subdomain of `*.backloop.dev` resolves to `127.0.0.1` and `::1`. Still live.
-- A wildcard certificate for `*.backloop.dev`, distributed to holders of a secret.
-- Certificates are **not bundled** in the package: they are downloaded at install time
-  (postinstall) and refreshed at runtime when close to expiry.
+The two packages were split out of this repository on 2026-09-04, each into a repository
+whose root is the package — npm cannot install a subdirectory of a git repository, and
+being installable by URL is where this is heading.
 
-## Repository map
+| | |
+|---|---|
+| [perki/backloop.dev-node](https://github.com/perki/backloop.dev-node) | The `backloop.dev` package. **Canonical documentation.** `src/secret.js` there is the single place that knows how the secret is resolved and how the download URL is built. |
+| [perki/backloop.dev-vite](https://github.com/perki/backloop.dev-vite) | The `vite-plugin-backloop.dev` plugin. Depends on `backloop.dev@^4.0.0` from npm. |
+
+What remains here:
 
 | Path | What it is |
 |---|---|
-| `nodejs/` | The `backloop.dev` package: Node API (`httpsOptions*`), CLI static server, reverse proxy, multi-host config server, cert updater. Most of the code and docs live here. `src/secret.js` is the single place that knows how the secret is resolved and how the download URL is built. |
-| `vitejs/` | The `vite-plugin-backloop.dev` package: thin Vite plugin wrapping `nodejs/`. |
+| `dist/` | The https://backloop.dev website: `index.html` (the shutdown notice), `llms.txt`, `llms-full.txt`, `robots.txt` — and the old certificate files, see below. Gitignored, and **copied by hand onto the Apache server at Gandi** — there is no deploy automation. The live certificate lives in a `dist/<secret>/` directory that is never committed and never named in any document. |
 | `renew/` | Certificate renewal infrastructure (Let's Encrypt + Gandi DNS). Let's Encrypt has blocklisted the domain, so it cannot complete and is kept for reference. **Do not modify unless explicitly asked.** |
 | `.github/workflows/` | The renewal workflow, manual-only and non-publishing. |
-| `dist/` | The https://backloop.dev website: `index.html` (the shutdown notice), `llms.txt`, `llms-full.txt`, `robots.txt` — and nothing else. Gitignored, and **copied by hand onto the Apache server at Gandi** — there is no deploy automation. The certificate files live in a `dist/<secret>/` directory that is never committed and never named in any document. |
-| `_temp/` | Working notes, plans and archived material. Gitignored. |
+| `_temp/` | Working notes, the migration plan, and archived material. Gitignored. |
 | branch `renew-gh-pages` | Dead since 2024; kept only as an archive. |
-
-There is no root `package.json`: `nodejs/`, `vitejs/` and `renew/` are independent npm projects.
 
 ## Distribution
 
-npm, with `npm install backloop.dev` unchanged. That is the point: the packages are used
-across more than a hundred projects, and a semver range plus one environment variable per
-machine beats editing a hundred manifests. Without a secret the package is inert, so
-publishing it distributes nothing sensitive.
+npm, with `npm install backloop.dev` unchanged — and that is deliberate. The packages are
+used across more than a hundred projects; a semver range that already resolves plus one
+`BACKLOOPDEV` per machine beats editing a hundred manifests on the same day. Each project
+then moves to `github:perki/backloop.dev-node#v4.0.0` on its own schedule. npm is the
+bridge; the split repositories are the destination.
 
-**Deprecation stops below 4.0.0.** `npm deprecate backloop.dev@"<4"` — the public-service
-releases carry the message, which is what a stranger running `npm install backloop.dev`
-lands on. 4.0.0 is deliberately left clean: it is the version that works, and a warning
-on every install of it would be noise in every project that legitimately uses it. Do not
-widen this to `@"*"`. Deprecated, never unpublished — unpublishing breaks existing
-consumers and npm disallows it after 72 hours.
+Without a secret the package is inert, so publishing it distributes nothing sensitive.
 
-Installing straight from *this* repository is not possible and should not be suggested:
-there is no `package.json` at the root, and npm cannot install a subdirectory of a git
-repository — `npm install github:perki/backloop.dev` fails with `ENOENT ... package.json`,
-verified 2026-09-04. Once the packages move to their own repositories (see `_temp/`),
-`github:perki/backloop.dev-node#v4.0.0` will work; npm honours `files` for a git install,
-so the contents are identical either way.
+**Deprecation stops below 4.0.0.** `npm deprecate backloop.dev@"<4"` — the
+public-service releases carry the message, which is what a stranger running
+`npm install backloop.dev` lands on, since they get 3.1.0. 4.0.0 is deliberately left
+clean: it is the version that works, and a warning on every install would be noise in
+every project that legitimately uses it. **Widen to `@"*"` only at the end of the
+migration.** Deprecated, never unpublished — unpublishing breaks existing consumers, npm
+disallows it after 72 hours, and removing the packages entirely is very unlikely to be
+possible at all.
 
-## Develop and test
+npm honours the `files` field for a git install too — it packs the clone the same way —
+so the contents are identical whichever route is used.
 
-```bash
-cd nodejs
-npm install
-npm test          # Node.js built-in test runner (Node 18+ required)
-npm run lint      # eslint with neostandard
-```
+## The old certificate is still served, on purpose
 
-`vitejs/` has no tests; `renew/` cannot be run at all any more.
-
-## Gotchas
-
-- `npm install` in `nodejs/` triggers `postinstall: node bin/update.js --postinstall`,
-  which needs network access **and** a configured secret. Without either it prints a
-  notice and exits 0 — it must never fail the install. A deliberate `backloop.dev-update`
-  exits 1 on the same failure; keep that asymmetry.
-- npm hides lifecycle output unless the script fails, so that postinstall notice is
-  invisible in a normal `npm install` (`--foreground-scripts` reveals it). Whatever a
-  user needs to be told has to be said at first start, not at install time.
-- In a sandboxed or offline environment, install with `npm install --ignore-scripts` and
-  pre-seed certificates by pointing `BACKLOOP_DEV_CERTS_DIR` at a directory containing a
-  valid `pack.json`. No secret is needed on that path.
-- `src/check.js` exits the process if the certs directory does not exist. The default is
-  `nodejs/certs/` (kept by `.gitkeep`, which must keep travelling in git installs).
-- The private key is distributed split in two files (`backloop.dev-key.part1.pem` +
-  `part2`); concatenate them to get the usable key. `pack.json` carries them as `key1` +
-  `key2`. The split delays naive scanners and nothing more — do not describe it as a
-  security measure.
+`https://backloop.dev/pack.json` and the five certificate files still answer at their
+old apex URLs, so that installs of `backloop.dev` v3 and the v1 plugin degrade quietly
+instead of breaking on a 404. That certificate was revoked on 2026-07-31 and expires on
+2026-10-29. Never describe those URLs as returning 404, and never present them as
+current. **A copy to Gandi must not delete server-side files** — no `rsync --delete`, or
+the old pack and the secret directory both disappear.
 
 ## Serving from Gandi
 
@@ -131,18 +111,18 @@ happened.
 ## Conventions
 
 - License: BSD-3-Clause. Source files carry a `@license` header, managed via `.licenser.yml`.
-- Lint style: [neostandard](https://github.com/neostandard/neostandard) — run `npm run lint` before committing.
-- `nodejs/CHANGELOG.md` is updated for every release; version lives in `nodejs/package.json`.
-- `vitejs/` depends on `backloop.dev` — when releasing a breaking change in `nodejs/`, also update and release `vitejs/`.
-- Keep `nodejs/README.md` the canonical documentation; the root README and the website only summarize and link to it.
+- Lint style in the package repositories: [neostandard](https://github.com/neostandard/neostandard).
+- A breaking change in `backloop.dev-node` means a release of `backloop.dev-vite` too.
+- Keep the node package's `README.md` the canonical documentation; the README here and
+  the website only summarize and link to it.
 
 ## Documentation surfaces to keep in sync
 
 When user-facing behavior changes, update all that apply:
 
-1. `nodejs/README.md` (canonical docs)
-2. `nodejs/AGENTS.md` and `vitejs/AGENTS.md`
-3. Root `README.md`
+1. `README.md` in [backloop.dev-node](https://github.com/perki/backloop.dev-node) (canonical), and its `AGENTS.md` and `CHANGELOG.md`
+2. `README.md` and `AGENTS.md` in [backloop.dev-vite](https://github.com/perki/backloop.dev-vite)
+3. This repository's `README.md`
 4. `dist/`: `index.html`, `llms.txt`, `llms-full.txt` — then copy `dist/` to the Gandi
    server, since nothing publishes it automatically. Remember rule 3 above: these three
    files say the project is discontinued and stop there.

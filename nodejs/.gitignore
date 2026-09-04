@@ -1,8 +1,0 @@
-node_modules
-certs/*
-!certs/.gitkeep
-./config.json
-
-# The secret is never committed: these repositories are public.
-backloop.dev.json
-.backloop.dev.json
