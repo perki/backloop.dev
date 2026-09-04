@@ -346,7 +346,7 @@ export default defineConfig({
 ```
 
 Now `npm run dev` will be served on `https://whatever.backloop.dev`
-There is also a ViteJS plugin that does the same: [vite-plugin-backloop.dev](../vitejs).
+There is also a ViteJS plugin that does the same: [vite-plugin-backloop.dev](https://github.com/perki/backloop.dev-vite).
 
 ## Security
 

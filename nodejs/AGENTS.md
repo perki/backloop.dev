@@ -137,4 +137,7 @@ Layout: `src/index.js|mjs|d.ts` (API), `src/secret.js` (secret resolution and UR
 `src/check.js` (download/refresh logic), `src/webserver/` (CLI server, proxy, multi-host
 config), `bin/` (CLI entry points), `test/`.
 
-See the [repository AGENTS.md](https://github.com/perki/backloop.dev/blob/main/AGENTS.md) for monorepo-wide conventions. Full documentation: [README.md](./README.md).
+Full documentation: [README.md](./README.md). The website, the renewal code and the
+project-wide rules — about the secret, and about what the public site may say — live in
+the repository this package was split out of,
+[perki/backloop.dev](https://github.com/perki/backloop.dev/blob/main/AGENTS.md).

@@ -1,7 +1,5 @@
 node_modules
-certs/*
-!certs/.gitkeep
-./config.json
+.DS_Store
 
 # The secret is never committed: these repositories are public.
 backloop.dev.json

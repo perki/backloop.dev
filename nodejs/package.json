@@ -18,14 +18,13 @@
     "same-origin policy",
     "certificates"
   ],
-  "homepage": "https://github.com/perki/backloop.dev/tree/main/nodejs",
+  "homepage": "https://github.com/perki/backloop.dev-node",
   "bugs": {
-    "url": "https://github.com/perki/backloop.dev/issues"
+    "url": "https://github.com/perki/backloop.dev-node/issues"
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/perki/backloop.dev.git",
-    "directory": "nodejs"
+    "url": "git+https://github.com/perki/backloop.dev-node.git"
   },
   "license": "BSD-3-Clause",
   "author": "Perki (https://backloop.dev)",

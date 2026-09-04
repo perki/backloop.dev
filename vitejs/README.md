@@ -1,8 +1,8 @@
 # backloop.dev plugin for viteJS
 
-[![npm](https://img.shields.io/npm/v/vite-plugin-backloop.dev)](https://www.npmjs.com/package/vite-plugin-backloop.dev) [![License](https://img.shields.io/badge/License-BSD_3--Clause-blue.svg)](https://opensource.org/licenses/BSD-3-Clause)
+[![License](https://img.shields.io/badge/License-BSD_3--Clause-blue.svg)](https://opensource.org/licenses/BSD-3-Clause)
 
-Do SSL HTTPS requests on **Localhost** using [backloop.dev](https://www.npmjs.com/package/backloop.dev) certificates pointing to your local environment.
+Do SSL HTTPS requests on **Localhost** using [backloop.dev](https://github.com/perki/backloop.dev-node) certificates pointing to your local environment.
 
 **https://\<any subdomain>.backloop.dev/ → https://localhost/**
 
@@ -20,6 +20,9 @@ Any subdomain of `*.backloop.dev` points to `localhost`!
 > secret to download the certificate, and **access is not open** — there is no way to
 > request one.
 >
+> **It has also left npm.** Every published version is deprecated and no new one will be
+> pushed there; the plugin is installed from this repository now.
+>
 > **On version 1 of this plugin, your dev server is quietly serving a revoked
 > certificate.** The old `backloop.dev/pack.json` was left in place so that existing
 > installs degrade instead of breaking, so nothing has visibly changed for you — but that
@@ -33,7 +36,11 @@ Any subdomain of `*.backloop.dev` points to `localhost`!
 
 ## Install
 
-1. `npm install vite-plugin-backloop.dev --save-dev`
+1. `npm install --save-dev github:perki/backloop.dev-vite#v2.0.0`
+
+   Pin the tag. The plugin is no longer on npm, and it pulls `backloop.dev` from
+   [its own repository](https://github.com/perki/backloop.dev-node) rather than from the registry, so an
+   environment without access to GitHub cannot install it.
 2. Edit `vite.config.js`
    - Add `import backloop from 'vite-plugin-backloop.dev'`
    - Add `backloop('myHostName')` to the plugins list
@@ -74,7 +81,7 @@ or a `backloop.dev.json` file in the project root:
 
 If neither is set, `npm run dev` asks you once at the terminal and remembers a secret
 that works, so you are not asked again. See
-[backloop.dev's README](../nodejs/README.md#configuring-the-secret) for every option,
+[backloop.dev's README](https://github.com/perki/backloop.dev-node#configuring-the-secret) for every option,
 including `BACKLOOP_DEV_CERTS_DIR` for when you already hold the certificate files.
 
 ## CONTRIBUTING

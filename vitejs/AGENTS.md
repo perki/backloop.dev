@@ -22,6 +22,13 @@ that it installs a local root into the trust store.
 
 **Never write a secret into this repository.** It is public.
 
+**This package is not on npm.** Every version published there is deprecated and none
+will follow. Install it as `github:perki/backloop.dev-vite#v2.0.0`; `private: true` in
+the manifest is there to stop an accidental `npm publish`. Its `backloop.dev` dependency
+is a `git+https` URL pointing at https://github.com/perki/backloop.dev-node, not a registry range — so
+resolving it needs GitHub access, which is worth saying when someone reports an install
+failure in a locked-down environment.
+
 ## What it does
 
 One-line HTTPS for the Vite dev server. Any subdomain of `*.backloop.dev` resolves to
@@ -50,7 +57,7 @@ The plugin only applies to `serve` (dev), never to builds. It sets `server.host`
 
 ## Notes
 
-- Certificates come from the [backloop.dev](https://www.npmjs.com/package/backloop.dev)
+- Certificates come from the [backloop.dev](https://github.com/perki/backloop.dev-node)
   dependency: downloaded at install time and auto-refreshed. That download needs network
   access **and** a configured secret. The plugin holds no secret of its own; set
   `BACKLOOPDEV` or a `backloop.dev.json` in the project root (gitignored), or
@@ -59,5 +66,6 @@ The plugin only applies to `serve` (dev), never to builds. It sets `server.host`
 - Install never fails for want of a secret — the postinstall step prints a notice and
   exits 0. The failure surfaces when the dev server starts.
 - Source: a single file, `index.js`. Types in `index.d.ts`.
-- Repo: https://github.com/perki/backloop.dev (`vitejs/` folder) — see the root
-  AGENTS.md for monorepo conventions.
+- Repo: https://github.com/perki/backloop.dev-vite. The website, the renewal code and the project-wide rules
+  about the secret live in the repository this was split out of,
+  https://github.com/perki/backloop.dev.
