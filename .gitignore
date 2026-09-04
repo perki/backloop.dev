@@ -15,3 +15,7 @@ renew/gh-pages
 # The secret is never committed: the repository is public.
 backloop.dev.json
 .backloop.dev.json
+
+# Development checkouts of the two package repositories, cloned by tools/setup.sh.
+# They are separate git repositories with their own remotes.
+/packages/

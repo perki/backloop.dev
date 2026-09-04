@@ -54,10 +54,36 @@ What remains here:
 |---|---|
 | `dist/` | The https://backloop.dev website, **copied by hand onto the Apache server at Gandi** — there is no deploy automation. The four authored files (`index.html`, `llms.txt`, `llms-full.txt`, `robots.txt`) are committed, because they have no other source and losing `dist/` would lose them for good. Everything else under `dist/` is gitignored by an allowlist, so a `dist/<secret>/` certificate directory can never be committed by accident. |
 | `tools/build-pack.js` | Builds a `dist/<secret>/` directory from a commercial CA delivery. No dependencies, no secrets — delivery, key and destination are arguments. |
+| `tools/set-notice.js` | Sets or clears the `notice` in a published `pack.json` — the one channel that reaches installed copies. |
+| `tools/setup.sh` | Clones both package repositories into `packages/`, installs them, links the plugin against the local node checkout. |
+| `packages/` | Development checkouts of the two package repositories. Gitignored; they have their own remotes. |
 | `renew/` | Certificate renewal infrastructure (ACME + Gandi DNS-01). Kept deliberately, in case issuance for this domain becomes possible again. It cannot complete today: the blocklist is on the *domain name*, so keeping the key private does not lift it. **Do not modify unless explicitly asked.** |
 | `.github/workflows/` | The renewal workflow, manual-only and non-publishing. |
 | `_temp/` | Working notes, the migration plan, and archived material. Gitignored. |
 | branch `renew-gh-pages` | Dead since 2024; kept only as an archive. |
+
+## Develop and test
+
+This repository is the hub for the whole project. `tools/setup.sh` clones both package
+repositories into `packages/`, installs them, and symlinks the plugin's `backloop.dev`
+dependency at the local node checkout, so a change in one is testable from the other
+without publishing anything:
+
+```bash
+./tools/setup.sh              # set BACKLOOPDEV first if you want certificates fetched
+cd packages/backloop.dev-node
+npm test                      # Node.js built-in test runner (Node 18+ required)
+npm run lint                  # eslint with neostandard
+```
+
+Safe to re-run: existing checkouts are fast-forwarded, never reset, and one with
+uncommitted work is left alone and reported. The symlink is deliberate rather than
+`npm link` — no global state to clean up, and the plugin's `package.json` keeps pointing
+at the published `^4.0.0`, so nothing local can leak into a release.
+
+`packages/` is gitignored. Both are independent repositories with their own remotes:
+commit and push inside each. The plugin has no tests; `renew/` cannot be run at all any
+more.
 
 ## Distribution
 
@@ -83,12 +109,19 @@ so the contents are identical whichever route is used.
 
 ## The old certificate is still served, on purpose
 
-`https://backloop.dev/pack.json` and the five certificate files still answer at their
-old apex URLs, so that installs of `backloop.dev` v3 and the v1 plugin degrade quietly
-instead of breaking on a 404. That certificate was revoked on 2026-07-31 and expires on
-2026-10-29. Never describe those URLs as returning 404, and never present them as
-current. **A copy to Gandi must not delete server-side files** — no `rsync --delete`, or
-the old pack and the secret directory both disappear.
+`https://backloop.dev/pack.json` answers with the **old, revoked** certificate — issued
+by a free authority, revoked 2026-07-31, expiring 2026-10-29 — so that installs of
+`backloop.dev` v3 and the v1 plugin keep working instead of breaking. That is not
+cosmetic: v3's postinstall has no `catch`, so a 404 there aborts the whole `npm install`,
+not just the download. Measured both ways on 2026-09-04.
+
+The five individual certificate files (`backloop.dev-cert.crt` and friends) are **not**
+restored and return 404. They were the human download path and nothing links to them any
+more; only `pack.json` matters, because that is what the package fetches.
+
+Never describe `pack.json` as returning 404, and never present it as current. **A copy to
+Gandi must not delete server-side files** — no `rsync --delete`, or the old pack and the
+secret directory both disappear. That has already happened once.
 
 ## Publishing a new certificate
 
@@ -115,6 +148,31 @@ openssl ocsp -issuer <delivery>/*DomainValidationSecureServerCA.crt \
 
 **The private key is not in this repository and must never be.** It is also not in any
 backup unless you put it in one; without it the certificate is worthless.
+
+## Telling people something
+
+`pack.json` may carry a `notice`, which `backloop.dev` 4.1.0 and later print once at
+start-up. It is the only channel to installed copies — a secret rotation with a date, in
+practice.
+
+```bash
+node tools/set-notice.js dist/<secret>/pack.json "The secret changes on 2027-01-15." 2027-01-20
+node tools/set-notice.js dist/<secret>/pack.json --clear
+```
+
+Always give an end date for anything with a deadline: a pack sits on a consumer's disk
+until the certificate nears expiry, so a notice without one nags for months about a date
+already gone.
+
+Two limits worth stating before relying on it. It reaches **only** installations on
+4.1.0 or later — older ones ignore the field. And it is read from the pack the consumer
+has, so someone whose certificate is still valid sees it only after their next refresh.
+Announce early, not on the day.
+
+Do **not** repurpose `pack.json`'s `version.message` for this. It fires only when
+`version.num` exceeds the package's hardcoded `versionNum`, and it then calls
+`process.exit(1)` — using it to announce anything would stop the dev server of everyone
+who had not yet migrated.
 
 ## Serving from Gandi
 
