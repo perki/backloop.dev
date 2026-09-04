@@ -1,8 +1,8 @@
 # backloop.dev plugin for viteJS
 
-[![License](https://img.shields.io/badge/License-BSD_3--Clause-blue.svg)](https://opensource.org/licenses/BSD-3-Clause)
+[![npm](https://img.shields.io/npm/v/vite-plugin-backloop.dev)](https://www.npmjs.com/package/vite-plugin-backloop.dev) [![License](https://img.shields.io/badge/License-BSD_3--Clause-blue.svg)](https://opensource.org/licenses/BSD-3-Clause)
 
-Do SSL HTTPS requests on **Localhost** using [backloop.dev](https://github.com/perki/backloop.dev-node) certificates pointing to your local environment.
+Do SSL HTTPS requests on **Localhost** using [backloop.dev](https://www.npmjs.com/package/backloop.dev) certificates pointing to your local environment.
 
 **https://\<any subdomain>.backloop.dev/ → https://localhost/**
 
@@ -19,9 +19,7 @@ Any subdomain of `*.backloop.dev` points to `localhost`!
 > This plugin still works, but the `backloop.dev` package it depends on now needs a
 > secret to download the certificate, and **access is not open** — there is no way to
 > request one.
->
-> **It has also left npm.** Every published version is deprecated and no new one will be
-> pushed there; the plugin is installed from this repository now.
+
 >
 > **On version 1 of this plugin, your dev server is quietly serving a revoked
 > certificate.** The old `backloop.dev/pack.json` was left in place so that existing
@@ -36,11 +34,7 @@ Any subdomain of `*.backloop.dev` points to `localhost`!
 
 ## Install
 
-1. `npm install --save-dev github:perki/backloop.dev-vite#v2.0.0`
-
-   Pin the tag. The plugin is no longer on npm, and it pulls `backloop.dev` from
-   [its own repository](https://github.com/perki/backloop.dev-node) rather than from the registry, so an
-   environment without access to GitHub cannot install it.
+1. `npm install vite-plugin-backloop.dev --save-dev`
 2. Edit `vite.config.js`
    - Add `import backloop from 'vite-plugin-backloop.dev'`
    - Add `backloop('myHostName')` to the plugins list

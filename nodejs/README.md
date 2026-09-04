@@ -46,8 +46,8 @@ But making requests to **HTTPS APIs** from **HTTP** sites on **localhost** would
 npm install backloop.dev [-g]
 ```
 
-The package is published with a deprecation warning: npm will tell you on install that
-this is no longer a public service. That is deliberate, and the package works.
+Versions below 4.0.0 are deprecated: they belong to the public-service era and npm warns
+anyone still installing them. 4.0.0 carries no warning — it is the version that works.
 
 Add `-g`, or use `npx`, for the `backloop.dev`, `backloop.dev-proxy` and
 `backloop.dev-update` commands.

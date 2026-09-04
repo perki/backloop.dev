@@ -13,8 +13,9 @@ the full account.
 
 Consequences for anything you do here:
 
-- The npm packages carry a deprecation warning. `npm install backloop.dev` still works; the
-  warning is the point, not a failure.
+- Still published on npm. Everything below 4.0.0 is deprecated — that is what a stranger
+  installing `backloop.dev` lands on, and the message explains the shutdown. 4.0.0 is not
+  deprecated: it is the working version and a warning on every install would be noise.
 - `https://backloop.dev/pack.json` still responds, but it serves the last public
   certificate, revoked 2026-07-31 and expiring 2026-10-29. It is frozen there for old
   installs and must never be treated as current. The live pack lives behind a path

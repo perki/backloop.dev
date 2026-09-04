@@ -46,8 +46,9 @@ downloadable from the old URLs, but it is revoked and is not renewed.
 npm install backloop.dev
 ```
 
-Both packages are published with a deprecation warning, so npm tells you on install that
-this is no longer a public service.
+Every version below 4.0.0 is deprecated, so anyone installing the old public-service
+releases is told what happened. 4.0.0 itself is not — it is the version that works, and
+a warning on every install of it would be noise.
 
 Certificates are downloaded from a path only reachable with a secret. If you have one,
 [nodejs/README.md](./nodejs/README.md#configuring-the-secret) covers the four places it

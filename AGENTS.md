@@ -60,16 +60,24 @@ There is no root `package.json`: `nodejs/`, `vitejs/` and `renew/` are independe
 
 ## Distribution
 
-Still npm, and deprecated rather than unpublished — unpublishing breaks existing
-consumers and npm disallows it after 72 hours. The deprecation message is what tells
-every installer, including old versions, that this is no longer a public service.
+npm, with `npm install backloop.dev` unchanged. That is the point: the packages are used
+across more than a hundred projects, and a semver range plus one environment variable per
+machine beats editing a hundred manifests. Without a secret the package is inert, so
+publishing it distributes nothing sensitive.
 
-Installing straight from git is **not** an option and should not be suggested: there is
-no `package.json` at the repository root, and npm cannot install a subdirectory of a git
-repository. `npm install github:perki/backloop.dev` fails with `ENOENT ... package.json`.
-Verified 2026-09-04.
+**Deprecation stops below 4.0.0.** `npm deprecate backloop.dev@"<4"` — the public-service
+releases carry the message, which is what a stranger running `npm install backloop.dev`
+lands on. 4.0.0 is deliberately left clean: it is the version that works, and a warning
+on every install of it would be noise in every project that legitimately uses it. Do not
+widen this to `@"*"`. Deprecated, never unpublished — unpublishing breaks existing
+consumers and npm disallows it after 72 hours.
 
-Without a secret the package is inert, so publishing it distributes nothing sensitive.
+Installing straight from *this* repository is not possible and should not be suggested:
+there is no `package.json` at the root, and npm cannot install a subdirectory of a git
+repository — `npm install github:perki/backloop.dev` fails with `ENOENT ... package.json`,
+verified 2026-09-04. Once the packages move to their own repositories (see `_temp/`),
+`github:perki/backloop.dev-node#v4.0.0` will work; npm honours `files` for a git install,
+so the contents are identical either way.
 
 ## Develop and test
 
