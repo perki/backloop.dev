@@ -5,9 +5,10 @@
 const fs = require('fs');
 const path = require('path');
 const https = require('https');
-const { resolveSecret, packUrl } = require('./secret');
-
-const certsPath = process.env.BACKLOOP_DEV_CERTS_DIR || path.resolve(__dirname, '../certs/');
+const {
+  resolveSecret, packUrl, certsPath, savedSecretPath, canPrompt, promptForSecret, saveSecret,
+  SECRET_PATTERN, MissingSecretError, ASK_THE_ADMIN
+} = require('./secret');
 
 const versionNum = 1;
 
@@ -22,7 +23,15 @@ if (!fs.existsSync(certsPath)) {
 
 const packPath = path.resolve(certsPath, 'pack.json');
 
-async function updateAndLoad (force = false, { secret } = {}) {
+/**
+ * @param {boolean} [force] - download even when the local certificate is still valid
+ * @param {object} [options]
+ * @param {string} [options.secret] - overrides every configured source
+ * @param {boolean} [options.interactive] - may ask for the secret at the terminal
+ *   when none is configured. Off by default, because a prompt nobody can see is
+ *   a hang: only callers that know a person is waiting should turn it on.
+ */
+async function updateAndLoad (force = false, { secret, interactive = false } = {}) {
   const actual = loadFromLocalDirectory(' Auto updating ');
 
   if (actual?.version?.num != null) {
@@ -40,7 +49,7 @@ async function updateAndLoad (force = false, { secret } = {}) {
     console.log('Force update of backloop.dev certificate');
   }
 
-  const res = await fetchPack(resolveSecret(secret));
+  const res = await fetchPackWithSecret(secret, interactive);
 
   const expDays = expirationDays(res.info.notAfter);
   if (expDays < 0) {
@@ -59,6 +68,46 @@ async function updateAndLoad (force = false, { secret } = {}) {
   console.log('Updated backloop.dev certificate, expires in ' + expDays + ' days');
   console.log(`Using ${certsPath} to store certificates files.`);
   res.expirationDays = expDays;
+  return res;
+}
+
+/**
+ * Uses a configured secret when there is one. When there is not and a person is
+ * watching, asks them once: a secret that downloads a pack is proven, so it is
+ * remembered and never asked for again. A secret that does not is not worth a
+ * retry loop — the answer is to go and get the right one.
+ *
+ * @param {string} [explicit] - secret passed by the caller
+ * @param {boolean} interactive - whether asking is allowed
+ * @returns Promise<CertsPack>
+ */
+async function fetchPackWithSecret (explicit, interactive) {
+  try {
+    return await fetchPack(resolveSecret(explicit));
+  } catch (err) {
+    // Only a *missing* secret is worth asking about. A configured one that is
+    // malformed or wrong is a problem to report, not to paper over.
+    if (!(err instanceof MissingSecretError) || !interactive || !canPrompt()) throw err;
+  }
+
+  const answer = await promptForSecret();
+  if (answer === '') throw new MissingSecretError();
+
+  if (!SECRET_PATTERN.test(answer)) {
+    console.log('\n' + ASK_THE_ADMIN + '\n');
+    throw new MissingSecretError();
+  }
+
+  let res;
+  try {
+    res = await fetchPack(answer);
+  } catch (err) {
+    console.log('\n' + ASK_THE_ADMIN + '\n');
+    throw err;
+  }
+
+  saveSecret(answer);
+  console.log(`Secret accepted and remembered in ${savedSecretPath}`);
   return res;
 }
 

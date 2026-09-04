@@ -11,9 +11,16 @@ certificate whose private key is published (CA/Browser Forum Baseline Requiremen
 in about two days. https://backloop.dev carries the full account.
 
 - The certificate pack is fetched from a path segment that requires a secret. Resolved,
-  first match wins, from `httpsOptionsPromise({ secret })`, `BACKLOOP_DEV_SECRET`,
-  `./backloop.dev.json`, then `~/.backloop.dev.json`. A secret is 8 to 128 characters of
-  `A-Z a-z 0-9 _ -`; a malformed one is reported rather than skipped.
+  first match wins, from `httpsOptionsPromise({ secret })`, `BACKLOOPDEV`,
+  `BACKLOOP_DEV_SECRET`, `./backloop.dev.json`, `~/.backloop.dev.json`, then a secret
+  remembered in `certs/secret`. A secret is 8 to 128 characters of `A-Z a-z 0-9 _ -`; a
+  malformed one is reported rather than skipped.
+- **The secret can be typed at the prompt.** When nothing is configured and a person is
+  at the terminal, asynchronous start-up asks once. An answer that downloads a pack is
+  proven, so it is saved to `certs/secret` (mode 0600) and never asked for again; one
+  that does not is not saved, and prints a note to ask whoever administers the setup.
+  Asking requires stdin and stdout to both be TTYs and is never done during postinstall,
+  so CI and `npm install` cannot hang on it. `interactive: false` turns it off.
 - `httpsOptionsPromise()` and `httpsOptionsAsync()` take an optional `{ secret }` first
   argument. `httpsOptionsAsync(callback)` is unchanged. `httpsOptions()` is unchanged and
   cannot carry a secret.

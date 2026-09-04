@@ -53,7 +53,7 @@ The plugin only applies to `serve` (dev), never to builds. It sets `server.host`
 - Certificates come from the [backloop.dev](https://www.npmjs.com/package/backloop.dev)
   dependency: downloaded at install time and auto-refreshed. That download needs network
   access **and** a configured secret. The plugin holds no secret of its own; set
-  `BACKLOOP_DEV_SECRET` or a `backloop.dev.json` in the project root (gitignored), or
+  `BACKLOOPDEV` or a `backloop.dev.json` in the project root (gitignored), or
   point `BACKLOOP_DEV_CERTS_DIR` at certificates you already have. See that package's
   AGENTS.md.
 - Install never fails for want of a secret — the postinstall step prints a notice and

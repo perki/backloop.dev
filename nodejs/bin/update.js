@@ -13,7 +13,9 @@ const isPostinstall = process.argv.includes('--postinstall');
 
 (async () => {
   try {
-    await updateAndLoad(true);
+    // Asking only makes sense when a person ran this on purpose. npm pipes a
+    // lifecycle script's output elsewhere, so a prompt there is an invisible hang.
+    await updateAndLoad(true, { interactive: !isPostinstall });
   } catch (err) {
     const expected = err instanceof MissingSecretError || err instanceof InvalidSecretError;
 

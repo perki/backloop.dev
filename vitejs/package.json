@@ -16,7 +16,8 @@
   },
   "repository": {
     "type": "git",
-    "url": "git@github.com:perki/backloop.dev.git"
+    "url": "git+https://github.com/perki/backloop.dev.git",
+    "directory": "vitejs"
   },
   "license": "BSD-3-Clause",
   "author": "Perki (https://backloop.dev)",

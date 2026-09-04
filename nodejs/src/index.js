@@ -9,7 +9,7 @@ function httpsOptions () {
   if (actual == null || actual.expirationDays < 0) {
     // lazyly try to update
     console.log('** Lazyly trying to update the certificate on my own ...');
-    httpsOptionsAsync(function (err, res) {
+    httpsOptionsAsync({ interactive: false }, function (err, res) {
       if (err) {
         console.log('** Failed with error', err);
       } else if (res) {
@@ -33,7 +33,7 @@ function httpsOptions () {
  */
 
 /**
- * @param {object|requestCallback} [options] - { secret }, or the callback itself
+ * @param {object|requestCallback} [options] - { secret, interactive }, or the callback itself
  * @param {requestCallback} [done]
  */
 function httpsOptionsAsync (options, done) {
@@ -45,12 +45,18 @@ function httpsOptionsAsync (options, done) {
 }
 
 /**
+ * Asynchronous start-up is the one moment where asking for the secret makes
+ * sense: there is a terminal, and someone is waiting at it. Pass
+ * `interactive: false` for a service that starts unattended.
+ *
  * @param {object} [options]
  * @param {string} [options.secret] - overrides every configured source
+ * @param {boolean} [options.interactive] - ask at the terminal when no secret is
+ *   configured and stdin is a TTY. Default true.
  * @returns Promise<httpsOptions>
  */
 async function httpsOptionsPromise (options = {}) {
-  const actual = await check.updateAndLoad(false, options);
+  const actual = await check.updateAndLoad(false, { interactive: true, ...options });
   if (actual == null) throw (new Error('Failed loading backloop.dev certificate'));
   return {
     key: actual.key1 + actual.key2,

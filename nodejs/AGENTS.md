@@ -56,15 +56,29 @@ const { httpsOptions, httpsOptionsAsync, httpsOptionsPromise } = require('backlo
 built. Resolution order, first match wins:
 
 1. `{ secret }` passed to the API
-2. `BACKLOOP_DEV_SECRET`
-3. `./backloop.dev.json` (`{ "secret": "..." }`, resolved against `INIT_CWD` or `cwd`)
-4. `~/.backloop.dev.json`
+2. `BACKLOOPDEV`
+3. `BACKLOOP_DEV_SECRET` (the earlier name, still read)
+4. `./backloop.dev.json` (`{ "secret": "..." }`, resolved against `INIT_CWD` or `cwd`)
+5. `~/.backloop.dev.json`
+6. `<certsPath>/secret`, written by the prompt below
 
 Validated against `/^[A-Za-z0-9_-]{8,128}$/` before it can reach a URL, so a malformed
 value cannot escape its path segment. A malformed secret throws `InvalidSecretError`
 rather than falling through to the next source — it is far likelier to be a typo than an
 invitation to fall back. No secret at all throws `MissingSecretError`, whose message
 explains every way to configure one.
+
+When none of those has a secret, `updateAndLoad` may ask at the terminal — once, not in
+a loop. An answer that downloads a pack is proven, so it is saved to `<certsPath>/secret`
+(mode 0600) and never asked for again; one that does not is not saved and prints
+`ASK_THE_ADMIN`. An empty answer prints `HOW_TO_CONFIGURE`.
+
+**Asking is off by default and guarded twice**, because a prompt nobody can see is a
+hang: `interactive` must be passed, *and* `canPrompt()` requires stdin and stdout to both
+be TTYs. `httpsOptionsPromise` / `httpsOptionsAsync` pass `interactive: true`; the sync
+`httpsOptions()` and `bin/update.js --postinstall` pass false. Do not turn it on for the
+postinstall hook — npm pipes lifecycle output elsewhere, so the question would never be
+seen and `npm install` would hang.
 
 `BACKLOOP_DEV_CERTS_DIR` pointed at a directory that already holds a valid `pack.json`
 skips the download entirely, and needs no secret. This is the offline/sandboxed path.

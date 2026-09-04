@@ -74,9 +74,19 @@ Provide it in any one of these ways. The first one that is set wins:
 | | How |
 |---|---|
 | 1 | `httpsOptionsPromise({ secret })` or `httpsOptionsAsync({ secret }, done)` — in code |
-| 2 | `BACKLOOP_DEV_SECRET=<secret>` — environment variable, works in CI and at postinstall |
+| 2 | `BACKLOOPDEV=<secret>` — environment variable, works in CI and at postinstall |
 | 3 | `./backloop.dev.json` in your project root — `{ "secret": "<secret>" }` |
 | 4 | `~/.backloop.dev.json` — one secret for every local project |
+| 5 | typed at the prompt, then remembered in `node_modules/backloop.dev/certs/secret` |
+
+The environment variable is the one worth setting properly. Add it to `~/.zshrc` or
+`~/.bashrc` and open a new terminal:
+
+```bash
+export BACKLOOPDEV=<secret>
+```
+
+(`BACKLOOP_DEV_SECRET` is also read, after `BACKLOOPDEV`.)
 
 A secret is 8 to 128 characters of `A-Z`, `a-z`, `0-9`, `_` and `-`. A malformed one is
 reported rather than skipped, because it is far likelier to be a typo than an
@@ -84,6 +94,27 @@ invitation to fall back to the next source.
 
 **Never commit a secret.** Add `backloop.dev.json` to your `.gitignore`; a secret in a
 public repository, a CI log or a pasted stack trace is a secret that is gone.
+
+### Being asked for it
+
+When nothing above is configured, an asynchronous start-up asks once:
+
+```
+The secret for backloop.dev is unknown. If you know it, enter it now.
+Otherwise, or to learn how to set it as an environment variable, press enter.
+Secret:
+```
+
+A secret that successfully downloads the pack is proven, so it is written to
+`certs/secret` inside the installed package and you are never asked again. One that
+does not work is not saved, and you get a note telling you to ask whoever administers
+your setup. Pressing enter prints the configuration instructions above.
+
+You will only ever see this prompt when a person is actually there: it requires both
+stdin and stdout to be a terminal. In CI, under a process supervisor, or during
+`npm install` — where npm pipes a script's output elsewhere and a question would be an
+invisible hang — nothing is asked. Pass `interactive: false` to turn it off in a service
+that starts unattended.
 
 Without a secret, installation still succeeds: the postinstall step prints a notice and
 exits cleanly. It is only at runtime, where a missing certificate cannot be worked

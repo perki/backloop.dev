@@ -7,6 +7,10 @@ const path = require('path');
 const {
   resolveSecret,
   packUrl,
+  saveSecret,
+  readSavedSecret,
+  canPrompt,
+  savedSecretPath,
   MissingSecretError,
   InvalidSecretError
 } = require('../src/secret');
@@ -23,20 +27,24 @@ beforeEach(() => {
   fs.mkdirSync(path.join(sandbox, 'home'));
   fs.mkdirSync(path.join(sandbox, 'project'));
   saved = {
+    BACKLOOPDEV: process.env.BACKLOOPDEV,
     BACKLOOP_DEV_SECRET: process.env.BACKLOOP_DEV_SECRET,
     BACKLOOP_DEV_BASE_URL: process.env.BACKLOOP_DEV_BASE_URL,
     INIT_CWD: process.env.INIT_CWD,
     homedir: os.homedir
   };
+  delete process.env.BACKLOOPDEV;
   delete process.env.BACKLOOP_DEV_SECRET;
   delete process.env.BACKLOOP_DEV_BASE_URL;
+  if (fs.existsSync(savedSecretPath)) fs.rmSync(savedSecretPath);
   process.env.INIT_CWD = path.join(sandbox, 'project');
   os.homedir = () => path.join(sandbox, 'home');
 });
 
 afterEach(() => {
   os.homedir = saved.homedir;
-  for (const key of ['BACKLOOP_DEV_SECRET', 'BACKLOOP_DEV_BASE_URL', 'INIT_CWD']) {
+  if (fs.existsSync(savedSecretPath)) fs.rmSync(savedSecretPath);
+  for (const key of ['BACKLOOPDEV', 'BACKLOOP_DEV_SECRET', 'BACKLOOP_DEV_BASE_URL', 'INIT_CWD']) {
     if (saved[key] === undefined) delete process.env[key];
     else process.env[key] = saved[key];
   }
@@ -58,7 +66,7 @@ describe('resolveSecret', () => {
 
   it('explains how to configure a secret in the error message', () => {
     assert.throws(() => resolveSecret(), (err) => {
-      assert.match(err.message, /BACKLOOP_DEV_SECRET/);
+      assert.match(err.message, /BACKLOOPDEV/);
       assert.match(err.message, /BACKLOOP_DEV_CERTS_DIR/);
       return true;
     });
@@ -68,8 +76,19 @@ describe('resolveSecret', () => {
     assert.strictEqual(resolveSecret(VALID), VALID);
   });
 
-  it('reads BACKLOOP_DEV_SECRET', () => {
+  it('reads BACKLOOPDEV', () => {
+    process.env.BACKLOOPDEV = VALID;
+    assert.strictEqual(resolveSecret(), VALID);
+  });
+
+  it('still reads the older BACKLOOP_DEV_SECRET', () => {
     process.env.BACKLOOP_DEV_SECRET = VALID;
+    assert.strictEqual(resolveSecret(), VALID);
+  });
+
+  it('prefers BACKLOOPDEV over BACKLOOP_DEV_SECRET', () => {
+    process.env.BACKLOOPDEV = VALID;
+    process.env.BACKLOOP_DEV_SECRET = 'older_secret_0123456789';
     assert.strictEqual(resolveSecret(), VALID);
   });
 
@@ -90,7 +109,7 @@ describe('resolveSecret', () => {
   });
 
   it('prefers the environment over the config files', () => {
-    process.env.BACKLOOP_DEV_SECRET = VALID;
+    process.env.BACKLOOPDEV = VALID;
     writeProjectConfig(JSON.stringify({ secret: 'proj_secret_0123456789' }));
     assert.strictEqual(resolveSecret(), VALID);
   });
@@ -114,7 +133,7 @@ describe('resolveSecret', () => {
   });
 
   it('rejects a malformed secret instead of silently trying the next source', () => {
-    process.env.BACKLOOP_DEV_SECRET = 'tiny';
+    process.env.BACKLOOPDEV = 'tiny';
     writeHomeConfig(JSON.stringify({ secret: VALID }));
     assert.throws(() => resolveSecret(), InvalidSecretError);
   });
@@ -132,6 +151,42 @@ describe('resolveSecret', () => {
   it('accepts the shortest allowed secret and rejects one character less', () => {
     assert.strictEqual(resolveSecret('a'.repeat(8)), 'a'.repeat(8));
     assert.throws(() => resolveSecret('a'.repeat(7)), InvalidSecretError);
+  });
+});
+
+describe('the remembered secret', () => {
+  it('is not read when the file is absent', () => {
+    assert.strictEqual(readSavedSecret(), null);
+  });
+
+  it('is used once saved, so the prompt happens only once', () => {
+    saveSecret(VALID);
+    assert.strictEqual(readSavedSecret(), VALID);
+    assert.strictEqual(resolveSecret(), VALID);
+  });
+
+  it('is written readable only by its owner', () => {
+    saveSecret(VALID);
+    assert.strictEqual(fs.statSync(savedSecretPath).mode & 0o777, 0o600);
+  });
+
+  it('loses to every configured source', () => {
+    saveSecret('remembered_0123456789');
+    process.env.BACKLOOPDEV = VALID;
+    assert.strictEqual(resolveSecret(), VALID);
+  });
+
+  it('is still validated, so a corrupted file is reported not used', () => {
+    fs.writeFileSync(savedSecretPath, 'not a valid secret!\n');
+    assert.throws(() => resolveSecret(), InvalidSecretError);
+  });
+});
+
+describe('canPrompt', () => {
+  it('says no when stdin is not a terminal, so CI never hangs', () => {
+    // The test runner's stdin is not a TTY, which is exactly the case that matters.
+    assert.strictEqual(canPrompt(), Boolean(process.stdin.isTTY && process.stdout.isTTY));
+    if (!process.stdin.isTTY) assert.strictEqual(canPrompt(), false);
   });
 });
 

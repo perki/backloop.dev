@@ -63,14 +63,17 @@ Open `https://myComputer.backloop.dev:<port>`
 ## Configuring the secret
 
 The plugin takes no secret of its own — it uses whatever the `backloop.dev` package
-finds. The simplest way in a Vite project is `BACKLOOP_DEV_SECRET` in your environment,
+finds. The simplest way in a Vite project is `BACKLOOPDEV` in your environment,
 or a `backloop.dev.json` file in the project root:
 
 ```json
 { "secret": "<your secret>" }
 ```
 
-**Add `backloop.dev.json` to `.gitignore`.** See
+**Add `backloop.dev.json` to `.gitignore`.**
+
+If neither is set, `npm run dev` asks you once at the terminal and remembers a secret
+that works, so you are not asked again. See
 [backloop.dev's README](../nodejs/README.md#configuring-the-secret) for every option,
 including `BACKLOOP_DEV_CERTS_DIR` for when you already hold the certificate files.
 

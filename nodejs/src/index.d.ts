@@ -25,6 +25,12 @@ export interface BackloopOptions {
    * `BACKLOOP_DEV_SECRET`, `./backloop.dev.json`, then `~/.backloop.dev.json`.
    */
   secret?: string;
+
+  /**
+   * Ask for the secret at the terminal when none is configured and stdin is a
+   * TTY. Defaults to true; set false for a service that starts unattended.
+   */
+  interactive?: boolean;
 }
 
 /**
