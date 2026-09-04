@@ -16,6 +16,18 @@ export interface HttpsOptions {
 }
 
 /**
+ * Options accepted by the asynchronous entry points.
+ */
+export interface BackloopOptions {
+  /**
+   * The secret the certificate pack is published under. Overrides every
+   * configured source. When omitted, the secret is looked up in order from
+   * `BACKLOOP_DEV_SECRET`, `./backloop.dev.json`, then `~/.backloop.dev.json`.
+   */
+  secret?: string;
+}
+
+/**
  * Callback for httpsOptionsAsync
  */
 export type HttpsOptionsCallback = (error: Error | null, options?: HttpsOptions) => void;
@@ -54,6 +66,7 @@ export function httpsOptions(): HttpsOptions;
  * ```
  */
 export function httpsOptionsAsync(done: HttpsOptionsCallback): void;
+export function httpsOptionsAsync(options: BackloopOptions, done: HttpsOptionsCallback): void;
 
 /**
  * Asynchronously retrieves HTTPS options using a Promise.
@@ -68,5 +81,10 @@ export function httpsOptionsAsync(done: HttpsOptionsCallback): void;
  * const options = await httpsOptionsPromise();
  * https.createServer(options, app).listen(443);
  * ```
+ *
+ * @example Passing the secret directly
+ * ```js
+ * const options = await httpsOptionsPromise({ secret: process.env.MY_SECRET });
+ * ```
  */
-export function httpsOptionsPromise(): Promise<HttpsOptions>;
+export function httpsOptionsPromise(options?: BackloopOptions): Promise<HttpsOptions>;

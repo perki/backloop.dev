@@ -4,3 +4,7 @@ renew/gh-pages
 .DS_Store
 /dist
 /_temp
+
+# The secret is never committed: the repository is public.
+backloop.dev.json
+.backloop.dev.json

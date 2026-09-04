@@ -5,6 +5,7 @@
 const fs = require('fs');
 const path = require('path');
 const https = require('https');
+const { resolveSecret, packUrl } = require('./secret');
 
 const certsPath = process.env.BACKLOOP_DEV_CERTS_DIR || path.resolve(__dirname, '../certs/');
 
@@ -21,7 +22,7 @@ if (!fs.existsSync(certsPath)) {
 
 const packPath = path.resolve(certsPath, 'pack.json');
 
-async function updateAndLoad (force = false) {
+async function updateAndLoad (force = false, { secret } = {}) {
   const actual = loadFromLocalDirectory(' Auto updating ');
 
   if (actual?.version?.num != null) {
@@ -39,7 +40,7 @@ async function updateAndLoad (force = false) {
     console.log('Force update of backloop.dev certificate');
   }
 
-  const res = await fetchPack();
+  const res = await fetchPack(resolveSecret(secret));
 
   const expDays = expirationDays(res.info.notAfter);
   if (expDays < 0) {
@@ -62,11 +63,19 @@ async function updateAndLoad (force = false) {
 }
 
 /**
+ * @param {string} secret - validated secret, the path segment the pack lives under
  * @returns Promise<CertsPack>
  */
-function fetchPack () {
+function fetchPack (secret) {
   return new Promise((resolve, reject) => {
-    https.get('https://backloop.dev/pack.json', function (res) {
+    https.get(packUrl(secret), function (res) {
+      // The secret is a path segment, so a wrong one reads as a plain 404.
+      if (res.statusCode !== 200) {
+        res.resume();
+        return reject(new Error(res.statusCode === 404
+          ? 'Certificate pack not found (HTTP 404). The secret is wrong, or it has been rotated.'
+          : `Unexpected HTTP ${res.statusCode} while downloading the certificate pack.`));
+      }
       let data = '';
       res.on('data', function (c) { data += c; });
       res.on('end', function () {

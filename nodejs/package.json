@@ -51,7 +51,7 @@
     "CHANGELOG.md"
   ],
   "scripts": {
-    "postinstall": "node bin/update.js",
+    "postinstall": "node bin/update.js --postinstall",
     "test": "node --test test/*.test.js",
     "lint": "eslint .",
     "proxy": "node src/webserver/proxy.js",

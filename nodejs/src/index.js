@@ -33,17 +33,24 @@ function httpsOptions () {
  */
 
 /**
- * @param {requestCallback} done
+ * @param {object|requestCallback} [options] - { secret }, or the callback itself
+ * @param {requestCallback} [done]
  */
-function httpsOptionsAsync (done) {
-  httpsOptionsPromise().then((res) => { done(null, res); }, done);
+function httpsOptionsAsync (options, done) {
+  if (typeof options === 'function') {
+    done = options;
+    options = {};
+  }
+  httpsOptionsPromise(options).then((res) => { done(null, res); }, done);
 }
 
 /**
+ * @param {object} [options]
+ * @param {string} [options.secret] - overrides every configured source
  * @returns Promise<httpsOptions>
  */
-async function httpsOptionsPromise () {
-  const actual = await check.updateAndLoad();
+async function httpsOptionsPromise (options = {}) {
+  const actual = await check.updateAndLoad(false, options);
   if (actual == null) throw (new Error('Failed loading backloop.dev certificate'));
   return {
     key: actual.key1 + actual.key2,
