@@ -46,7 +46,7 @@
   "files": [
     "bin",
     "src",
-    "certs",
+    "certs/.gitkeep",
     "AGENTS.md",
     "CHANGELOG.md"
   ],
