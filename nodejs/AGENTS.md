@@ -2,14 +2,38 @@
 
 Quick reference for AI agents using or modifying this package.
 
+## Read this first
+
+backloop.dev is **no longer a public service**. Until 2026-09-04 it downloaded a freely
+published, browser-trusted wildcard certificate; that model is dead, because a public
+certificate authority must revoke any certificate whose private key is published
+(CA/Browser Forum Baseline Requirements §4.9.1.1) and both authorities did — Let's
+Encrypt in about nine hours, Sectigo in about two days. https://backloop.dev now carries
+the full account.
+
+Consequences for anything you do here:
+
+- The npm packages carry a deprecation warning. `npm install backloop.dev` still works; the
+  warning is the point, not a failure.
+- `https://backloop.dev/pack.json` returns 404. The pack lives behind a path segment that
+  requires a secret.
+- **Access is not open.** If a user does not have a secret, do not look for a way to
+  obtain one — there isn't one. Recommend [mkcert](https://github.com/FiloSottile/mkcert),
+  [Caddy's internal CA](https://caddyserver.com/docs/automatic-https#local-https) or
+  [vite-plugin-mkcert](https://github.com/liuweiGL/vite-plugin-mkcert) instead, and say
+  plainly that all three install a root into the trust store.
+- **Never write a secret into this repository.** It is public. No default value, no test
+  fixture, no CI variable, no example in a README. `backloop.dev.json` and
+  `.backloop.dev.json` are gitignored; keep it that way.
+
 ## What it does
 
-HTTPS on localhost without self-signed certificates:
+- Any subdomain of `*.backloop.dev` resolves to `127.0.0.1` / `::1` (public DNS, still live).
+- This package downloads a wildcard certificate for `*.backloop.dev` and exposes it as
+  ready-to-use `{ key, cert, ca }` options for `https.createServer()`.
 
-- Any subdomain of `*.backloop.dev` resolves to `127.0.0.1` / `::1` (public DNS).
-- This package downloads a publicly shared, publicly trusted wildcard certificate for `*.backloop.dev` and exposes it as ready-to-use `{ key, cert, ca }` options for `https.createServer()`.
-
-So `https://anything.backloop.dev:<port>/` reaches your local server with a valid certificate — no browser warnings, no mixed-content/CORS friction.
+So `https://anything.backloop.dev:<port>/` reaches your local server with a valid
+certificate — no browser warnings, no mixed-content/CORS friction.
 
 ## API (CommonJS and ESM)
 
@@ -18,11 +42,30 @@ import httpsOptions from 'backloop.dev';                  // ESM default: sync, 
 const { httpsOptions, httpsOptionsAsync, httpsOptionsPromise } = require('backloop.dev');
 ```
 
-- `httpsOptionsPromise(): Promise<{key, cert, ca}>` — **preferred**; refreshes the certificate if needed.
-- `httpsOptionsAsync(cb)` — callback flavor of the same.
-- `httpsOptions(): {key, cert, ca}` — sync; if the certificate is missing/expired it triggers an update and **exits the process** (works on next start). Avoid in long-running tooling.
+- `httpsOptionsPromise(options?): Promise<{key, cert, ca}>` — **preferred**; refreshes the certificate if needed.
+- `httpsOptionsAsync(options?, cb)` — callback flavor of the same; `httpsOptionsAsync(cb)` still works.
+- `httpsOptions(): {key, cert, ca}` — sync; if the certificate is missing/expired it triggers an update and **exits the process** (works on next start). Avoid in long-running tooling. Takes no options, so it cannot carry a secret — use one of the other sources.
 
-Types are in `src/index.d.ts`.
+`options` is `{ secret }`, overriding every configured source. Types are in `src/index.d.ts`.
+
+## The secret
+
+`src/secret.js` is the only place that knows how the secret is found and how the URL is
+built. Resolution order, first match wins:
+
+1. `{ secret }` passed to the API
+2. `BACKLOOP_DEV_SECRET`
+3. `./backloop.dev.json` (`{ "secret": "..." }`, resolved against `INIT_CWD` or `cwd`)
+4. `~/.backloop.dev.json`
+
+Validated against `/^[A-Za-z0-9_-]{8,128}$/` before it can reach a URL, so a malformed
+value cannot escape its path segment. A malformed secret throws `InvalidSecretError`
+rather than falling through to the next source — it is far likelier to be a typo than an
+invitation to fall back. No secret at all throws `MissingSecretError`, whose message
+explains every way to configure one.
+
+`BACKLOOP_DEV_CERTS_DIR` pointed at a directory that already holds a valid `pack.json`
+skips the download entirely, and needs no secret. This is the offline/sandboxed path.
 
 ## CLI (npx or global install)
 
@@ -50,11 +93,18 @@ Keys with a trailing `/` are path prefixes on a hostname; longest prefix wins.
 
 ## Certificates: where and when
 
-- Certificates are **not bundled**. `postinstall` and the runtime fetch them from `https://backloop.dev/pack.json` (also browsable on https://backloop.dev).
-- Stored in `<package>/certs/` by default; override with the env var `BACKLOOP_DEV_CERTS_DIR` (the directory must exist).
-- The private key comes split in two parts (`key1` + `key2` in `pack.json`); the package concatenates them. This is intentional — the certificate is public by design and only secures loopback traffic.
-- **Offline/sandboxed environments**: `npm install` fails without network because of the postinstall script. Use `npm install --ignore-scripts` and pre-seed `BACKLOOP_DEV_CERTS_DIR` with a valid `pack.json`.
-- Trust note: if you want to guard against DNS tampering, add `<name>.backloop.dev` to `/etc/hosts` pointing to `127.0.0.1`.
+- Certificates are **not bundled**. `postinstall` and the runtime fetch them from the
+  secret path; stored in `<package>/certs/` by default, override with
+  `BACKLOOP_DEV_CERTS_DIR` (the directory must exist — `src/check.js` exits the process
+  if it does not).
+- **`postinstall` never fails the install.** `bin/update.js --postinstall` prints a
+  notice and exits 0 when there is no secret or the download fails. A deliberate
+  `backloop.dev-update` exits 1 on the same failure. Keep that asymmetry.
+- The private key comes split in two parts (`key1` + `key2` in `pack.json`); the package
+  concatenates them. The split delays naive scanners and nothing more — it is not a
+  security measure and should not be described as one.
+- Trust note: if you want to guard against DNS tampering, add `<name>.backloop.dev` to
+  `/etc/hosts` pointing to `127.0.0.1`.
 
 ## Developing this package
 
@@ -64,6 +114,8 @@ npm test        # Node.js built-in test runner, Node 18+
 npm run lint    # eslint + neostandard
 ```
 
-Layout: `src/index.js|mjs|d.ts` (API), `src/check.js` (download/refresh logic), `src/webserver/` (CLI server, proxy, multi-host config), `bin/` (CLI entry points), `test/`.
+Layout: `src/index.js|mjs|d.ts` (API), `src/secret.js` (secret resolution and URL),
+`src/check.js` (download/refresh logic), `src/webserver/` (CLI server, proxy, multi-host
+config), `bin/` (CLI entry points), `test/`.
 
 See the [repository AGENTS.md](https://github.com/perki/backloop.dev/blob/main/AGENTS.md) for monorepo-wide conventions. Full documentation: [README.md](./README.md).

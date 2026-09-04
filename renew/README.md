@@ -4,14 +4,22 @@ Renew the `*.backloop.dev` wildcard SSL certificate with Let's Encrypt and Gandi
 
 > **This no longer works.** Since 2026-08-01 Let's Encrypt refuses to issue for
 > this domain — `Cannot issue for "*.backloop.dev": ... forbidden by policy`.
-> The published wildcard is now bought from a commercial CA. The code here is
-> kept for its ACME and Gandi DNS-01 plumbing in case issuance becomes possible
-> again, and for `pack.js`, which is still what builds `pack.json`.
+> The wildcard is now bought from a commercial CA. The code here is kept for its
+> ACME and Gandi DNS-01 plumbing in case issuance becomes possible again, and
+> for `pack.js`, which is still what builds `pack.json`.
+>
+> **Publication changed too.** Since 2026-09-04 backloop.dev is no longer a
+> public service: certificates are not served from the apex but from a directory
+> whose name is a secret. The apex carries only the shutdown notice. Anything
+> here that writes into `dist/` writes the *staging* copy — the files then go
+> into `dist/<secret>/` on the server, and the secret is never written down in
+> this repository.
 
 - Outputs the certificate files into `dist/` at the root of this repository.
 - `dist/` is not committed and is not published by any automation: after a run,
   its contents are copied by hand onto the Apache server at Gandi that serves
-  https://backloop.dev.
+  https://backloop.dev — the certificate files into the secret directory, never
+  the apex.
 - The published certificates are used by the [backloop.dev](https://github.com/perki/backloop.dev) package.
 
 The workflow in [.github/workflows](../.github/workflows) is manual-only and

@@ -1,33 +1,68 @@
-# `backloop.dev` 
+# `backloop.dev`
 
-Loopback domain and SSL certs to handle HTTPS on localhost. 
+Loopback domain and SSL certificates for HTTPS on localhost.
 
-## Why ?
+> ## No longer a public service
+>
+> backloop.dev used to publish a browser-trusted wildcard certificate that anyone
+> could download. It cannot: a public certificate authority is obliged to revoke any
+> certificate whose private key is published, and both authorities did — Let's Encrypt
+> within about nine hours, Sectigo within about two days. The public service ended on
+> 2026-09-04 and <https://backloop.dev> now explains what happened in full.
+>
+> The project continues as a private setup used by its author. The code is still here
+> and still works, but downloading a certificate now requires a secret, and access is
+> not open.
+>
+> **Looking for HTTPS on localhost?** Use a local certificate authority:
+> [mkcert](https://github.com/FiloSottile/mkcert),
+> [Caddy's internal CA](https://caddyserver.com/docs/automatic-https#local-https), or
+> [vite-plugin-mkcert](https://github.com/liuweiGL/vite-plugin-mkcert). All install a
+> root into your trust store — the trade-off backloop.dev existed to avoid, and the
+> only one a public authority is not obliged to break.
 
-When you locally develop web applications that intensively use AJAX REST requests. CORS layer is enforced by pure HTTPS only policies from browsers to avoid **mixed content** between HTTP & HTTPS sources.
+## Why it existed
 
-Backloop.dev SSL certificates enable localhost HTTPS.
+When you develop web applications that make heavy use of AJAX REST requests, browsers
+enforce HTTPS-only policies to prevent **mixed content** between HTTP and HTTPS
+sources. backloop.dev certificates enabled HTTPS on localhost without a self-signed
+certificate or a root CA in your trust store.
 
-All `*.backloop.dev` hostnames point to `127.0.0.1` and `::1`. 
+All `*.backloop.dev` hostnames still point to `127.0.0.1` and `::1`. That part of the
+setup is unaffected — it is the certificate that is gone.
 
-## CONTENT 
+## Contents
 
-- [NodeJS](./nodejs) NPM package for usage in Node apps and command line tool to server local files or proxy web sites.
-- [ViteJS](./vitejs/) ViteJS plugin for local development
-- [The certificates](https://backloop.dev) Web page from which you can download the SSL certificates.
-- [Renew](./renew) Code that takes care of generating certificates regularly and publishing them.
+- [nodejs](./nodejs) — the npm package: Node API, static file server, reverse proxy,
+  multi-host HTTPS gateway. Most of the documentation lives here.
+- [vitejs](./vitejs) — the Vite plugin.
+- [renew](./renew) — certificate renewal infrastructure. Let's Encrypt has blocklisted
+  the domain, so it can no longer complete.
 
-Most of the documentation is present on the [NodeJS](./nodejs) package 👈🏻
+## Installing
+
+```bash
+npm install backloop.dev
+```
+
+Both packages are published with a deprecation warning, so npm tells you on install that
+this is no longer a public service.
+
+Certificates are downloaded from a path only reachable with a secret. If you have one,
+[nodejs/README.md](./nodejs/README.md#configuring-the-secret) covers the four places it
+can be configured. If you do not, the package installs cleanly and prints a notice
+rather than failing — but it cannot fetch a certificate, and there is no way to request
+one. Use one of the local-CA tools above instead.
+
+Already hold the certificate files? Point `BACKLOOP_DEV_CERTS_DIR` at a directory
+containing a valid `pack.json` and no secret is needed at all.
 
 ## For AI agents
 
-- [AGENTS.md](./AGENTS.md) — repository map, dev commands and conventions for coding agents.
-- [https://backloop.dev/llms.txt](https://backloop.dev/llms.txt) — LLM-readable summary of the project, with [llms-full.txt](https://backloop.dev/llms-full.txt) for the complete usage documentation in plain markdown.
-- [https://backloop.dev/pack.json](https://backloop.dev/pack.json) — machine-readable certificate bundle (cert, CA, split key, validity dates).
-
-## CONTRIBUTING
-
-- Pull requests are welcome.
+- [AGENTS.md](./AGENTS.md) — repository map, dev commands and conventions.
+- [https://backloop.dev/llms.txt](https://backloop.dev/llms.txt) — summary of what the
+  project was and why it ended, with
+  [llms-full.txt](https://backloop.dev/llms-full.txt) for the full account.
 
 ## License
 

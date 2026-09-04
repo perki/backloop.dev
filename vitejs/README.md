@@ -8,6 +8,23 @@ Do SSL HTTPS requests on **Localhost** using [backloop.dev](https://www.npmjs.co
 
 Any subdomain of `*.backloop.dev` points to `localhost`!
 
+--------------------------------------------------
+
+> ## No longer a public service
+>
+> backloop.dev stopped publishing its certificate openly on 2026-09-04. A public
+> certificate authority must revoke any certificate whose private key is published, and
+> both of them did. <https://backloop.dev> explains it in full.
+>
+> This plugin still works, but the `backloop.dev` package it depends on now needs a
+> secret to download the certificate, and **access is not open** — there is no way to
+> request one.
+>
+> **If you want HTTPS on your Vite dev server**, use
+> [vite-plugin-mkcert](https://github.com/liuweiGL/vite-plugin-mkcert) instead. It
+> installs a local root into your trust store, which is the trade-off backloop.dev
+> existed to avoid — and the only one a public authority is not obliged to break.
+
 ## Install
 
 1. `npm install vite-plugin-backloop.dev --save-dev`
@@ -35,7 +52,21 @@ export default defineConfig({
 
 Launch viteJs in dev model `npm run dev`
 
-Open `https://myComputer.backloop.dev:<port>` 
+Open `https://myComputer.backloop.dev:<port>`
+
+## Configuring the secret
+
+The plugin takes no secret of its own — it uses whatever the `backloop.dev` package
+finds. The simplest way in a Vite project is `BACKLOOP_DEV_SECRET` in your environment,
+or a `backloop.dev.json` file in the project root:
+
+```json
+{ "secret": "<your secret>" }
+```
+
+**Add `backloop.dev.json` to `.gitignore`.** See
+[backloop.dev's README](../nodejs/README.md#configuring-the-secret) for every option,
+including `BACKLOOP_DEV_CERTS_DIR` for when you already hold the certificate files.
 
 ## CONTRIBUTING
 

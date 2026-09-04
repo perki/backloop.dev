@@ -2,9 +2,25 @@
 
 Quick reference for AI agents using this package.
 
+## Read this first
+
+backloop.dev is **no longer a public service** (2026-09-04). It published a
+browser-trusted certificate openly, which a public certificate authority is obliged to
+revoke once the private key is public — both of them did. The certificate now sits
+behind a path that requires a secret, and **access is not open**: there is no way to
+request one, so do not look for one or invent a contact route.
+
+If a user wants HTTPS on a Vite dev server and has no secret, recommend
+[vite-plugin-mkcert](https://github.com/liuweiGL/vite-plugin-mkcert), and say plainly
+that it installs a local root into the trust store.
+
+**Never write a secret into this repository.** It is public.
+
 ## What it does
 
-One-line HTTPS for the Vite dev server, with a real (publicly trusted) certificate. Any subdomain of `*.backloop.dev` resolves to `127.0.0.1` / `::1`, so the browser sees a valid HTTPS origin while everything stays on your machine.
+One-line HTTPS for the Vite dev server. Any subdomain of `*.backloop.dev` resolves to
+`127.0.0.1` / `::1`, so the browser sees a valid HTTPS origin while everything stays on
+your machine.
 
 ## Usage
 
@@ -22,11 +38,20 @@ export default defineConfig({
 
 `npm run dev` then serves on `https://myapp.backloop.dev:<port>/`.
 
-The plugin only applies to `serve` (dev), never to builds. It sets `server.host`, `server.https` and optionally `server.port` — remove any conflicting manual `server.https` config.
+The plugin only applies to `serve` (dev), never to builds. It sets `server.host`,
+`server.https` and optionally `server.port` — remove any conflicting manual
+`server.https` config.
 
 ## Notes
 
-- Certificates come from the [backloop.dev](https://www.npmjs.com/package/backloop.dev) dependency: downloaded at install time and auto-refreshed. Install needs network access (see that package's AGENTS.md for offline workarounds).
-- The certificate is intentionally public; it only secures loopback traffic.
+- Certificates come from the [backloop.dev](https://www.npmjs.com/package/backloop.dev)
+  dependency: downloaded at install time and auto-refreshed. That download needs network
+  access **and** a configured secret. The plugin holds no secret of its own; set
+  `BACKLOOP_DEV_SECRET` or a `backloop.dev.json` in the project root (gitignored), or
+  point `BACKLOOP_DEV_CERTS_DIR` at certificates you already have. See that package's
+  AGENTS.md.
+- Install never fails for want of a secret — the postinstall step prints a notice and
+  exits 0. The failure surfaces when the dev server starts.
 - Source: a single file, `index.js`. Types in `index.d.ts`.
-- Repo: https://github.com/perki/backloop.dev (`vitejs/` folder) — see the root AGENTS.md for monorepo conventions.
+- Repo: https://github.com/perki/backloop.dev (`vitejs/` folder) — see the root
+  AGENTS.md for monorepo conventions.
