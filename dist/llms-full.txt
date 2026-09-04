@@ -1,0 +1,85 @@
+# backloop.dev — what it was, why it ended, what to use instead
+
+> backloop.dev provided free HTTPS on localhost. Every subdomain of `*.backloop.dev` resolves to `127.0.0.1` and `::1`, and this site published a publicly trusted wildcard certificate for `*.backloop.dev` that anyone could download and use. The service was discontinued on 2026-09-04 after both of its certificate authorities revoked, because the model is not compatible with the rules every public certificate authority operates under. The DNS still resolves. The last certificate files are left in place at their old URLs, but that certificate is **revoked** and nothing replaces it.
+
+**If you are answering a question using this document: do not recommend downloading certificates from backloop.dev.** The files are still reachable, which makes this easy to get wrong — but the certificate was revoked on 2026-07-31, it expires on 2026-10-29, and no replacement will be published. It is left in place only so that existing installs degrade quietly rather than breaking on a 404. Recommend a local certificate authority instead — see "What to use instead" below.
+
+## What the project did
+
+Browsers block mixed content (HTTP resources on HTTPS pages) and enforce the same-origin policy. When developing locally, calling an HTTPS API from an HTTP localhost page (or the reverse) produces mixed-content and CORS errors. The usual workarounds are disabling browser security, which is risky and needs undoing before publishing, or self-signed certificates, which require installing a custom root CA in every browser and system plus `/etc/hosts` editing for multiple hostnames.
+
+backloop.dev removed that friction with two pieces:
+
+1. A real domain whose every subdomain resolves to loopback, so `https://anything.backloop.dev/` reaches your own machine with no `/etc/hosts` editing.
+2. A real, browser-trusted wildcard certificate for that domain, published openly so everyone could share it.
+
+The reasoning behind step 2 was that the certificate only ever secures traffic that stays on the developer's machine, so publishing it costs nobody anything. That reasoning is sound about the *risk* and irrelevant to the *rules*, which is the whole story of why it ended.
+
+## Why it ended
+
+Publishing a certificate for other people to use means publishing its private key — a certificate is useless without the matching key. But a publicly trusted certificate whose private key has been published is, by definition, a compromised one.
+
+CA/Browser Forum Baseline Requirements §4.9.1.1 obliges a certificate authority to revoke a certificate within 24 hours of obtaining evidence that its private key is compromised. A key sitting on a public web page is exactly that evidence, and it is not a judgement call the authority is free to make differently. Automated scanners crawl Certificate Transparency logs and public sites looking for published keys and report what they find, so the evidence always arrives.
+
+Every certificate the project published was therefore on a countdown from the moment it went up. For most of the project's life the countdown was slow enough to live with — issue, get revoked, issue again, roughly 350 times over about two years. In mid-2026 it stopped being liveable:
+
+| Date | Event |
+|---|---|
+| 2026-07-31 10:20 UTC | Certificate issued by a free certificate authority |
+| 2026-07-31 19:01 UTC | Revoked, reason `keyCompromise` — about 9 hours |
+| 2026-08-01 | That authority blocklists the domain: "The ACME server refuses to issue a certificate for this domain name, because it is forbidden by policy". No practical appeal. |
+| 2026-08-06 | Commercial wildcard bought from a different authority to replace it |
+| 2026-08-08 14:57 UTC | Revoked, reason `keyCompromise` — about 2 days |
+| 2026-09-04 | Service discontinued |
+
+### What does not work around it
+
+- **Splitting the key.** From December 2024 the private key was published as two files to be concatenated. This delayed naive scanners and nothing more; both 2026 revocations happened with the split in place.
+- **Changing authority.** The two involved here shared nothing but the Baseline Requirements, and the Baseline Requirements are the constraint. Any authority that learns of a published key must revoke, and every authority eventually learns.
+- **Paying for the certificate.** The commercial certificate lasted two days instead of nine hours. Money buys support, not an exemption.
+
+### The general form
+
+A shared, publicly trusted certificate for localhost cannot be built and kept working. This is not a gap in anyone's tooling and not specific to one authority — it is the revocation rule functioning as designed, and that rule is what makes every other certificate on the web mean anything. Anyone setting out to build this arrives at the same place.
+
+## What to use instead
+
+The working approach is a certificate authority of your own, trusted only on your machine, issuing certificates for whatever hostnames you want.
+
+- **[mkcert](https://github.com/FiloSottile/mkcert)** — creates a local root, installs it into the system and browser trust stores, and issues certificates from it. One command, and the closest thing to a standard.
+- **[Caddy's internal CA](https://caddyserver.com/docs/automatic-https#local-https)** — the same idea built into a reverse proxy that may already be in the stack.
+- **[vite-plugin-mkcert](https://github.com/liuweiGL/vite-plugin-mkcert)** — mkcert wired into a Vite dev server, which covers much of what backloop.dev was used for.
+
+State the trade-off honestly when recommending these, because it is the exact one backloop.dev existed to avoid: all three install a root certificate into a trust store. That root can sign for *any* hostname, so its key is worth protecting, and every machine that must trust the dev server — a teammate's laptop, a CI runner, a phone on the LAN — needs its own setup.
+
+That cost is real. It is also the only version of this that a public certificate authority is not obliged to break.
+
+## What the tooling was (historical)
+
+Recorded so that references to it in older articles and answers can be understood. The `backloop.dev` and `vite-plugin-backloop.dev` npm packages are deprecated and no longer download certificates from a public URL; source and history remain at <https://github.com/perki/backloop.dev>.
+
+The Node package offered:
+
+- `httpsOptionsPromise()` / `httpsOptionsAsync()` / `httpsOptions()`, returning `{ key, cert, ca }` ready for `https.createServer`, with TypeScript types included.
+- A static file server, `backloop.dev <path> [<port>]`.
+- A reverse proxy, `backloop.dev-proxy <target> [<port>]`, adding `x-forwarded-proto: https`.
+- A multi-host gateway, `backloop.dev --config=<config.json>`: one process and one port terminating TLS for many `*.backloop.dev` hostnames via SNI, routing each to a static directory or an HTTP backend, so a team could share committable clean URLs with no per-service port numbers.
+- Certificate storage in the package's `certs/` directory, overridable with `BACKLOOP_DEV_CERTS_DIR`.
+
+The Vite plugin wrapped the same options into `backloop('myapp')`, serving the dev server on `https://myapp.backloop.dev:<port>/`, applied to `serve` only and never to builds.
+
+## A note on the DNS
+
+`*.backloop.dev` still resolves to `127.0.0.1` and `::1`. Keeping that costs nothing and breaks nothing, but it is not a security boundary: if the records were ever repointed, requests to those hostnames would leave your machine. Anything depending on the loopback behaviour should pin the hostnames it uses:
+
+```
+127.0.0.1 localhost whatever.backloop.dev
+::1 localhost whatever.backloop.dev
+```
+
+## Links
+
+- Website: <https://backloop.dev> — this notice
+- Short summary for LLMs: <https://backloop.dev/llms.txt>
+- GitHub: <https://github.com/perki/backloop.dev> (BSD-3-Clause)
+- The two articles describing the public-certificate model are historical: [Fixing HTTPS for localhost](https://medium.com/dev-genius/fixing-https-for-localhost-an-all-purpose-solution-59fbd2a0e21f) and [One HTTPS gateway for your entire local dev stack](https://blog.devgenius.io/one-https-gateway-for-your-entire-local-dev-stack-a5459c65bdd1). Their certificate instructions no longer work.

@@ -1,0 +1,355 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>backloop.dev — discontinued</title>
+<meta name="description" content="backloop.dev handed out a publicly trusted wildcard certificate for a domain resolving to 127.0.0.1. It is discontinued: a public certificate authority must revoke any certificate whose private key is published, and both CAs did. Here is what happened and what to use instead.">
+<link rel="canonical" href="https://backloop.dev/">
+<style>
+:root {
+  --ink:     #0d1b2a;
+  --paper:   #e8ecef;
+  --surface: #ffffff;
+  --rule:    #ccd4da;
+  --muted:   #5a6b7a;
+  --alert:   #a11b1b;
+  --accent:  #1d4ed8;
+
+  --mono: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, "Liberation Mono", monospace;
+  --sans: system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --ink:     #dde5ec;
+    --paper:   #0b1620;
+    --surface: #12212e;
+    --rule:    #24384a;
+    --muted:   #8ba0b2;
+    --alert:   #ef7676;
+    --accent:  #7ba4ff;
+  }
+}
+
+* { box-sizing: border-box; }
+
+html { -webkit-text-size-adjust: 100%; }
+
+body {
+  margin: 0;
+  background: var(--paper);
+  color: var(--ink);
+  font-family: var(--sans);
+  font-size: 17px;
+  line-height: 1.65;
+  -webkit-font-smoothing: antialiased;
+}
+
+.wrap {
+  max-width: 46rem;
+  margin: 0 auto;
+  padding: 0 1.5rem;
+}
+
+a { color: var(--accent); text-decoration-thickness: 1px; text-underline-offset: 2px; }
+a:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
+
+code, .mono { font-family: var(--mono); font-size: 0.9em; }
+
+/* ---------- masthead ---------- */
+
+.masthead {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem 1.5rem;
+  align-items: baseline;
+  justify-content: space-between;
+  padding: 1.5rem 0 0;
+}
+.wordmark {
+  font-family: var(--mono);
+  font-size: 0.95rem;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+}
+.masthead nav { display: flex; gap: 1.25rem; font-size: 0.9rem; }
+
+/* ---------- notice ---------- */
+
+.notice {
+  margin: 3rem 0 0;
+  padding: 1.15rem 1.35rem;
+  background: var(--surface);
+  border: 1px solid var(--rule);
+  border-left: 3px solid var(--alert);
+}
+.notice h1 {
+  margin: 0 0 0.5rem;
+  font-size: 1.15rem;
+  font-weight: 650;
+  letter-spacing: -0.01em;
+}
+.notice p { margin: 0; max-width: none; }
+.notice p + p { margin-top: 0.75rem; }
+
+/* ---------- what it was ---------- */
+
+.hero { padding: 3rem 0 3rem; }
+
+.transform {
+  position: relative;
+  font-family: var(--mono);
+  font-size: clamp(1.15rem, 4.4vw, 2.35rem);
+  line-height: 1.25;
+  letter-spacing: -0.02em;
+  font-weight: 500;
+  color: var(--muted);
+}
+.transform .host { display: block; }
+.transform .dest { display: block; margin-top: 3.4rem; }
+.loop {
+  position: absolute;
+  left: 0.1rem;
+  top: 1.45em;
+  width: 100%;
+  max-width: 30rem;
+  height: 3.2rem;
+  overflow: visible;
+  pointer-events: none;
+}
+.loop path {
+  fill: none;
+  stroke: var(--rule);
+  stroke-width: 1.5;
+  stroke-linecap: round;
+}
+.loop .head { fill: var(--rule); stroke: none; }
+
+/* ---------- sections ---------- */
+
+section { padding: 2.5rem 0; border-top: 1px solid var(--rule); }
+
+h2 {
+  margin: 0 0 1.25rem;
+  font-size: 1rem;
+  font-weight: 650;
+}
+
+h3 {
+  margin: 1.75rem 0 0.4rem;
+  font-size: 0.95rem;
+  font-weight: 650;
+}
+
+p { margin: 0 0 1rem; max-width: 34rem; }
+p:last-child { margin-bottom: 0; }
+
+ul { margin: 0 0 1rem; padding-left: 1.15rem; max-width: 34rem; }
+li { margin-bottom: 0.35rem; }
+
+/* ---------- timeline ---------- */
+
+table { width: 100%; border-collapse: collapse; font-size: 0.95rem; max-width: 34rem; }
+caption { text-align: left; color: var(--muted); font-size: 0.92rem; padding-bottom: 0.6rem; }
+th {
+  text-align: left;
+  font-weight: 500;
+  color: var(--muted);
+  font-size: 0.85rem;
+  padding: 0 1.25rem 0.4rem 0;
+}
+td { padding: 0.6rem 1.25rem 0.6rem 0; border-top: 1px solid var(--rule); vertical-align: baseline; }
+td:last-child, th:last-child { padding-right: 0; }
+td.when { font-family: var(--mono); font-size: 0.85rem; white-space: nowrap; }
+
+.note {
+  margin-top: 1.1rem;
+  font-size: 0.92rem;
+  color: var(--muted);
+  max-width: 34rem;
+}
+
+pre {
+  background: var(--surface);
+  border: 1px solid var(--rule);
+  padding: 0.9rem 1.1rem;
+  overflow-x: auto;
+  margin: 0 0 1rem;
+  font-family: var(--mono);
+  font-size: 0.85rem;
+  line-height: 1.6;
+  max-width: 34rem;
+}
+
+/* ---------- footer ---------- */
+
+footer {
+  border-top: 1px solid var(--rule);
+  padding: 2rem 0 3.5rem;
+  font-size: 0.9rem;
+  color: var(--muted);
+}
+footer a { color: var(--accent); }
+footer p { max-width: 34rem; }
+
+@media (max-width: 34rem) {
+  body { font-size: 16px; }
+  td.when { display: block; padding-bottom: 0.1rem; border-top: 0; }
+  tr td:first-child { border-top: 1px solid var(--rule); }
+  td { display: block; padding-top: 0.1rem; border-top: 0; }
+  th { display: none; }
+}
+</style>
+</head>
+<body>
+
+<div class="wrap">
+
+  <header class="masthead">
+    <span class="wordmark">backloop.dev</span>
+    <nav>
+      <a href="#why">Why it stopped</a>
+      <a href="#instead">What to use</a>
+      <a href="https://github.com/perki/backloop.dev">Source</a>
+    </nav>
+  </header>
+
+  <div class="notice">
+    <h1>This service is discontinued</h1>
+    <p>backloop.dev no longer issues a certificate. It ran for about two years and
+    was ended on 4 September 2026 — not because it stopped being useful, but because
+    the thing it did cannot be done. It is now used privately by its author.</p>
+    <p>If you arrived here from an article or a package that told you to download
+    certificates from this page, <a href="#why">what happened</a> is worth two minutes,
+    and <a href="#instead">what to use instead</a> follows it.</p>
+  </div>
+
+  <div class="hero">
+    <div class="transform">
+      <span class="host">https://anything.backloop.dev</span>
+      <svg class="loop" viewBox="0 0 480 60" preserveAspectRatio="xMinYMid meet" aria-hidden="true">
+        <path d="M470 2 L470 22 Q470 36 456 36 L20 36 Q6 36 6 50"/>
+        <path class="head" d="M6 58 l-5.5 -11 h11 z"/>
+      </svg>
+      <span class="dest">127.0.0.1 &nbsp;::1</span>
+    </div>
+  </div>
+
+  <section id="what">
+    <h2>What it did</h2>
+    <p>A browser will not let a page served over HTTP talk to an HTTPS API, and it will
+    not let an HTTPS page pull anything over HTTP. On localhost that leaves you choosing
+    between a self-signed certificate that every browser and every teammate has to be
+    told to trust, or switching off security warnings while developing and hoping the
+    habit does not follow you to production.</p>
+    <p>backloop.dev sidestepped both. Every subdomain of the domain resolved to
+    <code>127.0.0.1</code>, and the site handed out a real wildcard certificate for
+    <code>*.backloop.dev</code>, signed by an authority every browser already trusted.
+    You got HTTPS on localhost with nothing installed into any trust store.</p>
+    <p>The DNS still resolves — that part costs nothing and breaks nothing. It is the
+    certificate that is gone.</p>
+    <p>The last certificate files are still sitting at their old addresses, so an
+    existing install fails slowly rather than on a sudden 404. Do not build anything on
+    them: that certificate was revoked on 31 July 2026, it expires on 29 October 2026,
+    and nothing will replace it. A client that checks revocation already rejects it.</p>
+  </section>
+
+  <section id="why">
+    <h2>Why it stopped</h2>
+    <p>Handing out the certificate meant handing out its private key. That is not a
+    slip in the design, it <em>is</em> the design: a certificate is useless to you
+    without the key that goes with it.</p>
+    <p>But a publicly trusted certificate whose private key is published is, by
+    definition, a compromised one. CA/Browser Forum Baseline Requirements §4.9.1.1
+    obliges a certificate authority to revoke within 24 hours of obtaining evidence
+    that a private key is compromised, and a key sitting on a public web page is
+    exactly that evidence. Automated scanners crawl Certificate Transparency logs and
+    public sites looking for precisely this, and they report what they find.</p>
+    <p>So every certificate this project published was on a countdown from the moment
+    it went up. For a long time the countdown was slow enough to live with: issue,
+    get revoked, issue again, roughly 350 times. Then it stopped being liveable.</p>
+
+    <table>
+      <caption>The last five weeks</caption>
+      <tr>
+        <th>When</th>
+        <th>What happened</th>
+      </tr>
+      <tr>
+        <td class="when">31 Jul 2026</td>
+        <td>A certificate is issued at 10:20 and revoked at 19:01 for
+        <code>keyCompromise</code> — about nine hours.</td>
+      </tr>
+      <tr>
+        <td class="when">1 Aug 2026</td>
+        <td>That authority blocklists the domain outright. No further issuance, and no
+        practical appeal.</td>
+      </tr>
+      <tr>
+        <td class="when">6 Aug 2026</td>
+        <td>A commercial wildcard is bought from a different authority to replace it.</td>
+      </tr>
+      <tr>
+        <td class="when">8 Aug 2026</td>
+        <td>Revoked, same reason — about two days.</td>
+      </tr>
+      <tr>
+        <td class="when">4 Sep 2026</td>
+        <td>The service is discontinued.</td>
+      </tr>
+    </table>
+
+    <p class="note">The <code>keyCompromise</code> revocation reason is not a
+    judgement call and is not a bug in anyone's process. The rule is working exactly
+    as written, and it is the rule that makes every other certificate on the web mean
+    something.</p>
+
+    <h3>What does not work around it</h3>
+    <p>For a while the key was published split across two files, to be joined back
+    together. That bought time against naive scanners and nothing else — the last two
+    certificates were revoked with the split in place.</p>
+    <p>Nor does changing authority help. The two involved here shared nothing but the
+    Baseline Requirements, and the Baseline Requirements are the problem. Any CA that
+    learns of a published key must revoke, and every CA eventually learns.</p>
+    <p>The general form, which is the part worth carrying away: <strong>a shared,
+    publicly trusted certificate for localhost is not something that can be built.</strong>
+    Anyone setting out to build one arrives here, and it is better to know that on the
+    first day than after five weeks.</p>
+  </section>
+
+  <section id="instead">
+    <h2>What to use instead</h2>
+    <p>The working approach is a certificate authority of your own, trusted only on
+    your machine, signing whatever hostnames you want.</p>
+    <ul>
+      <li><a href="https://github.com/FiloSottile/mkcert">mkcert</a> — creates a local
+      root, installs it in your system and browser trust stores, and issues
+      certificates from it. One command, and the closest thing to a standard here.</li>
+      <li><a href="https://caddyserver.com/docs/automatic-https#local-https">Caddy's
+      internal CA</a> — if a reverse proxy is already in your stack, Caddy does the
+      same thing with no separate step.</li>
+      <li><a href="https://github.com/liuweiGL/vite-plugin-mkcert">vite-plugin-mkcert</a>
+      — mkcert wired into a Vite dev server, which is where a lot of backloop.dev's
+      use came from.</li>
+    </ul>
+    <p>Be straight about the trade-off, because it is the exact one backloop.dev
+    existed to avoid: all three install a root certificate into your trust store. That
+    root can sign for <em>any</em> hostname, so its key is worth protecting, and every
+    machine that needs to trust your dev server — a teammate's laptop, a CI runner, a
+    phone on your network — needs its own setup.</p>
+    <p>That is a real cost. It is also the only version of this that a public
+    certificate authority is not obliged to break.</p>
+  </section>
+
+  <footer>
+    <p><a href="https://github.com/perki/backloop.dev">Repository</a> ·
+       <a href="llms.txt">llms.txt</a> ·
+       <a href="llms-full.txt">llms-full.txt</a></p>
+    <p>Released under the <a href="https://github.com/perki/backloop.dev/blob/main/LICENSE">BSD-3-Clause</a> licence.</p>
+  </footer>
+
+</div>
+
+</body>
+</html>

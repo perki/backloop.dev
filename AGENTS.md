@@ -52,8 +52,9 @@ What remains here:
 
 | Path | What it is |
 |---|---|
-| `dist/` | The https://backloop.dev website: `index.html` (the shutdown notice), `llms.txt`, `llms-full.txt`, `robots.txt` — and the old certificate files, see below. Gitignored, and **copied by hand onto the Apache server at Gandi** — there is no deploy automation. The live certificate lives in a `dist/<secret>/` directory that is never committed and never named in any document. |
-| `renew/` | Certificate renewal infrastructure (Let's Encrypt + Gandi DNS). Let's Encrypt has blocklisted the domain, so it cannot complete and is kept for reference. **Do not modify unless explicitly asked.** |
+| `dist/` | The https://backloop.dev website, **copied by hand onto the Apache server at Gandi** — there is no deploy automation. The four authored files (`index.html`, `llms.txt`, `llms-full.txt`, `robots.txt`) are committed, because they have no other source and losing `dist/` would lose them for good. Everything else under `dist/` is gitignored by an allowlist, so a `dist/<secret>/` certificate directory can never be committed by accident. |
+| `tools/build-pack.js` | Builds a `dist/<secret>/` directory from a commercial CA delivery. No dependencies, no secrets — delivery, key and destination are arguments. |
+| `renew/` | Certificate renewal infrastructure (ACME + Gandi DNS-01). Kept deliberately, in case issuance for this domain becomes possible again. It cannot complete today: the blocklist is on the *domain name*, so keeping the key private does not lift it. **Do not modify unless explicitly asked.** |
 | `.github/workflows/` | The renewal workflow, manual-only and non-publishing. |
 | `_temp/` | Working notes, the migration plan, and archived material. Gitignored. |
 | branch `renew-gh-pages` | Dead since 2024; kept only as an archive. |
@@ -88,6 +89,32 @@ instead of breaking on a 404. That certificate was revoked on 2026-07-31 and exp
 2026-10-29. Never describe those URLs as returning 404, and never present them as
 current. **A copy to Gandi must not delete server-side files** — no `rsync --delete`, or
 the old pack and the secret directory both disappear.
+
+## Publishing a new certificate
+
+A commercial delivery arrives as four files. `tools/build-pack.js` turns them and the
+private key into the published directory, mirroring `renew/src/saveccert.js` and
+`renew/src/pack.js` exactly — same chain order, same 600-character key split, same
+`pack.json` fields and `info` shape — because installed copies of the package parse it:
+
+```bash
+node tools/build-pack.js <delivery-dir> <key-file> dist/<secret>
+```
+
+It refuses to write anything if the certificate does not match the key. The delivery's
+USERTrust root is deliberately left out of the chain: it is already in every trust store.
+
+Then check the certificate before publishing it, and periodically afterwards — that is
+what catches a revocation on the day rather than a day late:
+
+```bash
+openssl ocsp -issuer <delivery>/*DomainValidationSecureServerCA.crt \
+  -cert <delivery>/STAR_backloop_dev.crt \
+  -url http://ocsp.sectigo.com -header "Host=ocsp.sectigo.com" -no_nonce
+```
+
+**The private key is not in this repository and must never be.** It is also not in any
+backup unless you put it in one; without it the certificate is worthless.
 
 ## Serving from Gandi
 

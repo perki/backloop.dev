@@ -2,7 +2,14 @@
 renew/secret*.env.sh
 renew/gh-pages
 .DS_Store
-/dist
+# The website is authored by hand and has no other source, so it is committed.
+# Everything else under dist/ is generated or secret — certificate directories
+# above all — so this is an allowlist: anything not named here stays ignored.
+/dist/*
+!/dist/index.html
+!/dist/llms.txt
+!/dist/llms-full.txt
+!/dist/robots.txt
 /_temp
 
 # The secret is never committed: the repository is public.
