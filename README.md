@@ -53,12 +53,13 @@ npm install backloop.dev
 ```
 
 Every version below 4.0.0 is deprecated, so anyone installing the old public-service
-releases is told what happened. 4.0.0 itself is not — it is the version that works, and
-a warning on every install of it would be noise. Installing straight from the repository
-works too, and is where this is heading:
+releases is told what happened. 4.x and later are not — those are the versions that work,
+and a warning on every install of them would be noise. What the npm builds do carry is a
+line at start-up saying the package is no longer updated there, because installing from
+the repository is where this is heading:
 
 ```bash
-npm install github:perki/backloop.dev-node#v4.0.0
+npm install github:perki/backloop.dev-node#v5.0.0
 ```
 
 Certificates are downloaded from a path only reachable with a secret. If you have one,

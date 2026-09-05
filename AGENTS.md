@@ -46,7 +46,7 @@ being installable by URL is where this is heading.
 | | |
 |---|---|
 | [perki/backloop.dev-node](https://github.com/perki/backloop.dev-node) | The `backloop.dev` package. **Canonical documentation.** `src/secret.js` there is the single place that knows how the secret is resolved and how the download URL is built. |
-| [perki/backloop.dev-vite](https://github.com/perki/backloop.dev-vite) | The `vite-plugin-backloop.dev` plugin. Depends on `backloop.dev@^4.0.0` from npm. |
+| [perki/backloop.dev-vite](https://github.com/perki/backloop.dev-vite) | The `vite-plugin-backloop.dev` plugin. Depends on `backloop.dev@^5.0.0` from npm. |
 
 What remains here:
 
@@ -79,7 +79,7 @@ npm run lint                  # eslint with neostandard
 Safe to re-run: existing checkouts are fast-forwarded, never reset, and one with
 uncommitted work is left alone and reported. The symlink is deliberate rather than
 `npm link` — no global state to clean up, and the plugin's `package.json` keeps pointing
-at the published `^4.0.0`, so nothing local can leak into a release.
+at the published `^5.0.0`, so nothing local can leak into a release.
 
 `packages/` is gitignored. Both are independent repositories with their own remotes:
 commit and push inside each. The plugin has no tests; `renew/` cannot be run at all any
@@ -90,22 +90,47 @@ more.
 npm, with `npm install backloop.dev` unchanged — and that is deliberate. The packages are
 used across more than a hundred projects; a semver range that already resolves plus one
 `BACKLOOPDEV` per machine beats editing a hundred manifests on the same day. Each project
-then moves to `github:perki/backloop.dev-node#v4.0.0` on its own schedule. npm is the
+then moves to `github:perki/backloop.dev-node#v5.0.0` on its own schedule. npm is the
 bridge; the split repositories are the destination.
 
 Without a secret the package is inert, so publishing it distributes nothing sensitive.
 
-**Deprecation stops below 4.0.0.** `npm deprecate backloop.dev@"<4"` — the
-public-service releases carry the message, which is what a stranger running
-`npm install backloop.dev` lands on, since they get 3.1.0. 4.0.0 is deliberately left
-clean: it is the version that works, and a warning on every install would be noise in
-every project that legitimately uses it. **Widen to `@"*"` only at the end of the
-migration.** Deprecated, never unpublished — unpublishing breaks existing consumers, npm
-disallows it after 72 hours, and removing the packages entirely is very unlikely to be
-possible at all.
+**Deprecation stops below 4.0.0** — `npm deprecate backloop.dev@"<4"`, and `@"<2"` for
+the plugin. The public-service releases carry the message, which is what a stranger
+running `npm install backloop.dev` lands on, since they get 3.1.0. 4.x and later are
+deliberately left clean: those are the versions that work, and a warning on every install
+would be noise in every project that legitimately uses them. Telling *those* projects to
+move is the npm branch's job instead (below), which says it once per process at start-up
+rather than once per install. **Widen to `@"*"` only at the end of the migration.**
+Deprecated, never unpublished — unpublishing breaks existing consumers, npm disallows it
+after 72 hours, and removing the packages entirely is very unlikely to be possible at
+all.
 
 npm honours the `files` field for a git install too — it packs the clone the same way —
-so the contents are identical whichever route is used.
+so the contents are identical whichever route is used, apart from the one file below.
+
+### The npm branch
+
+Neither package is published from `main`. Each has an `npm` branch that is `main` **plus
+exactly one file** — `src/npm-distribution-warning.js` in the node package,
+`npm-distribution-warning.js` in the plugin — and that branch is what goes to the
+registry. So a copy installed from npm says at start-up that the package is no longer
+updated there and names the git URL to switch to, and a copy installed from git says
+nothing. Seeing the message means the project you are in has not migrated yet; that
+signal is the whole point, so it is deliberately not silenceable.
+
+The hook lives on `main` and the branch only ever *adds* — so a rebase can never conflict
+and the published build cannot drift from the tag it claims. **Keep it that way.** Because
+that tarball differs from the same-named tag by one file, a `-npm` tag (`v5.0.0-npm`,
+`v2.2.0-npm`) marks exactly what was published. The procedure lives in each package's own
+`AGENTS.md`; it ends with `git checkout main`, and a checkout left on `npm` is a publish
+that was not finished.
+
+**One cross-repository contract:** only one warning is shown per process. A Vite project
+loads both packages, and each saying the same thing gave sixteen lines. Whichever speaks
+first claims `Symbol.for('backloop.dev.distributionWarningShown')` on `globalThis` and the
+other stays quiet — change that symbol name in one repository and you must change it in
+the other.
 
 ## The old certificate is still served, on purpose
 
