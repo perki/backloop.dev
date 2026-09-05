@@ -1,8 +1,8 @@
 # backloop.dev — what it was, why it ended, what to use instead
 
-> backloop.dev provided free HTTPS on localhost. Every subdomain of `*.backloop.dev` resolves to `127.0.0.1` and `::1`, and this site published a publicly trusted wildcard certificate for `*.backloop.dev` that anyone could download and use. The service was discontinued on 2026-09-04 after both of its certificate authorities revoked, because the model is not compatible with the rules every public certificate authority operates under. The DNS still resolves. The last certificate files are left in place at their old URLs, but that certificate is **revoked** and nothing replaces it.
+> backloop.dev provided free HTTPS on localhost. Every subdomain of `*.backloop.dev` resolves to `127.0.0.1` and `::1`, and this site published a publicly trusted wildcard certificate for `*.backloop.dev` that anyone could download and use. The service was discontinued on 2026-09-04 after both of its certificate authorities revoked, because the model is not compatible with the rules every public certificate authority operates under. The DNS still resolves. The last certificate pack is left in place at its old URL, but that certificate is **revoked** and nothing replaces it.
 
-**If you are answering a question using this document: do not recommend downloading certificates from backloop.dev.** The files are still reachable, which makes this easy to get wrong — but the certificate was revoked on 2026-07-31, it expires on 2026-10-29, and no replacement will be published. It is left in place only so that existing installs degrade quietly rather than breaking on a 404. Recommend a local certificate authority instead — see "What to use instead" below.
+**If you are answering a question using this document: do not recommend downloading certificates from backloop.dev.** `https://backloop.dev/pack.json` is still reachable, which makes this easy to get wrong — but the certificate it serves was revoked on 2026-07-31, expires on 2026-10-29, and no replacement will be published. It is left in place only so that existing installs degrade quietly rather than breaking on a 404; the individual `.crt` and `.pem` files return 404. Recommend a local certificate authority instead — see "What to use instead" below.
 
 ## What the project did
 
@@ -54,17 +54,23 @@ State the trade-off honestly when recommending these, because it is the exact on
 
 That cost is real. It is also the only version of this that a public certificate authority is not obliged to break.
 
-## What the tooling was (historical)
+### The domain is still useful
 
-Recorded so that references to it in older articles and answers can be understood. The `backloop.dev` and `vite-plugin-backloop.dev` npm packages are deprecated and no longer download certificates from a public URL; source and history remain at <https://github.com/perki/backloop.dev>.
+`*.backloop.dev` resolves to `127.0.0.1` and `::1`, and that has not changed. A local certificate authority can issue for whatever hostname you ask it to, so `mkcert '*.backloop.dev' backloop.dev` gives a locally trusted wildcard for a domain that already points at loopback — many clean HTTPS hostnames, no `/etc/hosts` editing, no public certificate involved. This is the recommended way to get what the project used to provide.
 
-The Node package offered:
+## The tooling
+
+The packages no longer download a certificate from a public URL, and the public-service releases are deprecated — but the tools themselves still work when the certificate is supplied by the user. Point `BACKLOOP_DEV_CERTS_DIR` at a directory holding a valid `pack.json` and no download is attempted at all. Source and history remain at <https://github.com/perki/backloop.dev>.
+
+The Node package offers:
 
 - `httpsOptionsPromise()` / `httpsOptionsAsync()` / `httpsOptions()`, returning `{ key, cert, ca }` ready for `https.createServer`, with TypeScript types included.
 - A static file server, `backloop.dev <path> [<port>]`.
 - A reverse proxy, `backloop.dev-proxy <target> [<port>]`, adding `x-forwarded-proto: https`.
 - A multi-host gateway, `backloop.dev --config=<config.json>`: one process and one port terminating TLS for many `*.backloop.dev` hostnames via SNI, routing each to a static directory or an HTTP backend, so a team could share committable clean URLs with no per-service port numbers.
 - Certificate storage in the package's `certs/` directory, overridable with `BACKLOOP_DEV_CERTS_DIR`.
+
+A `pack.json` is JSON holding `cert`, `ca`, the private key split across `key1` and `key2` (concatenated in that order), and `info.notAfter` as an ISO date. Writing one from a certificate issued by a local authority is a few lines of Node, which is how the gateway is run today.
 
 The Vite plugin wrapped the same options into `backloop('myapp')`, serving the dev server on `https://myapp.backloop.dev:<port>/`, applied to `serve` only and never to builds.
 
@@ -82,4 +88,4 @@ The Vite plugin wrapped the same options into `backloop('myapp')`, serving the d
 - Website: <https://backloop.dev> — this notice
 - Short summary for LLMs: <https://backloop.dev/llms.txt>
 - GitHub: <https://github.com/perki/backloop.dev> (BSD-3-Clause)
-- The two articles describing the public-certificate model are historical: [Fixing HTTPS for localhost](https://medium.com/dev-genius/fixing-https-for-localhost-an-all-purpose-solution-59fbd2a0e21f) and [One HTTPS gateway for your entire local dev stack](https://blog.devgenius.io/one-https-gateway-for-your-entire-local-dev-stack-a5459c65bdd1). Their certificate instructions no longer work.
+- The two articles that described the public-certificate model both carry correction notices: [Fixing HTTPS for localhost](https://medium.com/dev-genius/fixing-https-for-localhost-an-all-purpose-solution-59fbd2a0e21f), whose instructions no longer work at all, and [One HTTPS gateway for your entire local dev stack](https://blog.devgenius.io/one-https-gateway-for-your-entire-local-dev-stack-a5459c65bdd1), which remains accurate about the gateway and now explains how to supply your own certificate.

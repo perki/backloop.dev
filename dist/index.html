@@ -249,10 +249,11 @@ footer p { max-width: 34rem; }
     You got HTTPS on localhost with nothing installed into any trust store.</p>
     <p>The DNS still resolves — that part costs nothing and breaks nothing. It is the
     certificate that is gone.</p>
-    <p>The last certificate files are still sitting at their old addresses, so an
+    <p>The last certificate pack is still sitting at its old address, so an
     existing install fails slowly rather than on a sudden 404. Do not build anything on
-    them: that certificate was revoked on 31 July 2026, it expires on 29 October 2026,
-    and nothing will replace it. A client that checks revocation already rejects it.</p>
+    it: that certificate was revoked on 31 July 2026, it expires on 29 October 2026,
+    and nothing will replace it. A client that checks revocation already rejects it.
+    The individual certificate files it used to sit beside are gone and return 404.</p>
   </section>
 
   <section id="why">
@@ -340,6 +341,22 @@ footer p { max-width: 34rem; }
     phone on your network — needs its own setup.</p>
     <p>That is a real cost. It is also the only version of this that a public
     certificate authority is not obliged to break.</p>
+
+    <h3>The domain still works</h3>
+
+    <p>One piece of this is still standing, and it is free: every subdomain of
+    <code>backloop.dev</code> still resolves to
+    <code>127.0.0.1</code> and <code>::1</code>. A local
+    authority will sign whatever name you ask it to, so</p>
+
+    <pre><code>mkcert -install
+mkcert '*.backloop.dev' backloop.dev</code></pre>
+
+    <p>gives you a locally trusted wildcard for a domain that already points at your
+    own machine — as many clean HTTPS hostnames as you like, no
+    <code>/etc/hosts</code> editing, and no public certificate anywhere in
+    it. That is the closest thing to what this site used to hand out, and nothing about
+    it can be revoked.</p>
   </section>
 
   <footer>
