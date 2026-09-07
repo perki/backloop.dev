@@ -1,0 +1,185 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>backloop.dev: the public certificate</title>
+<meta name="description" content="A shared, self-signed certificate for *.backloop.dev, and how to install it on macOS, Windows and Linux so your browser accepts HTTPS on localhost.">
+<link rel="canonical" href="https://backloop.dev/public/">
+<style>
+:root {
+  --ink: #0d1b2a; --paper: #e8ecef; --surface: #ffffff; --rule: #ccd4da;
+  --muted: #5a6b7a; --alert: #a11b1b; --accent: #1d4ed8; --ok: #15803d;
+  --mono: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
+  --sans: system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+}
+@media (prefers-color-scheme: dark) {
+  :root { --ink:#dde5ec; --paper:#0b1620; --surface:#12212e; --rule:#24384a;
+          --muted:#8ba0b2; --alert:#ef7676; --accent:#7ba4ff; --ok:#4ade80; }
+}
+* { box-sizing: border-box; }
+body { margin:0; background:var(--paper); color:var(--ink); font-family:var(--sans);
+       font-size:17px; line-height:1.65; -webkit-font-smoothing:antialiased; }
+.wrap { max-width:46rem; margin:0 auto; padding:0 1.5rem; }
+a { color:var(--accent); text-underline-offset:2px; }
+code, .mono { font-family:var(--mono); font-size:0.9em; }
+header { border-bottom:1px solid var(--rule); padding:2.5rem 0 1.5rem; }
+h1 { font-size:1.9rem; line-height:1.2; margin:0 0 0.5rem; letter-spacing:-0.02em; }
+h2 { font-size:1.25rem; margin:2.5rem 0 0.75rem; letter-spacing:-0.01em; }
+h3 { font-size:1rem; margin:1.75rem 0 0.5rem; }
+.lede { color:var(--muted); margin:0; }
+pre { background:var(--surface); border:1px solid var(--rule); border-radius:6px;
+      padding:0.85rem 1rem; overflow-x:auto; font-family:var(--mono); font-size:0.83rem; line-height:1.5; }
+.card { background:var(--surface); border:1px solid var(--rule); border-radius:8px;
+        padding:1rem 1.25rem; margin:1.25rem 0; }
+.warn { border-left:3px solid var(--alert); }
+.fp { font-family:var(--mono); font-size:0.76rem; word-break:break-all; color:var(--ink); }
+table { border-collapse:collapse; width:100%; margin:1rem 0; font-size:0.95rem; }
+th, td { text-align:left; padding:0.5rem 0.75rem; border-bottom:1px solid var(--rule); vertical-align:top; }
+th { color:var(--muted); font-weight:600; font-size:0.85rem; }
+footer { border-top:1px solid var(--rule); margin-top:3rem; padding:1.5rem 0 3rem;
+         color:var(--muted); font-size:0.9rem; }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header>
+  <h1>The public certificate</h1>
+  <p class="lede">A shared certificate for <code>*.backloop.dev</code>, so you get HTTPS on
+  localhost without generating anything yourself. Install it once per machine.</p>
+</header>
+
+<h2>What this is</h2>
+
+<p>Every hostname under <code>backloop.dev</code> resolves to <code>127.0.0.1</code> and
+<code>::1</code>. This page publishes a certificate for all of them, together with its
+private key, so that anybody can use it.</p>
+
+<p>It is <strong>self-signed</strong>. No certificate authority issued it, which is the
+entire point: <a href="/">the previous certificate was revoked</a> because publishing a
+key obliges a certificate authority to revoke, and there is no authority here to oblige.
+Nothing can take this one away. The cost is that your machine does not trust it until you
+say so, which is what the rest of this page is about.</p>
+
+<h2>What you are accepting</h2>
+
+<div class="card warn">
+<p style="margin-top:0">The private key is public. Anyone has it. Once you install this
+certificate, someone who can redirect your machine's DNS for a
+<code>*.backloop.dev</code> hostname could present a page your browser accepts.</p>
+<p style="margin-bottom:0">Two things bound that. It is a <strong>leaf certificate, not a
+certificate authority</strong>, so it cannot be used to sign any other hostname: your bank
+and your email are untouched, and that is the difference between this and installing a
+root. And these hostnames point at your own machine, so an attacker needs to control your
+DNS before any of it applies.</p>
+</div>
+
+<p>If that is not a trade you want to make, do not install it. Use
+<a href="#your-own">your own certificate</a> instead, which the tooling supports directly
+and which is the better answer whenever you can manage it.</p>
+
+<h2>Install it</h2>
+
+<p>Download <a href="backloop.dev-cert.crt">backloop.dev-cert.crt</a>, then follow the
+section for your system.</p>
+
+<h3>macOS</h3>
+
+<p>Double-click the file to add it to Keychain Access, find <code>*.backloop.dev</code>
+under the <em>login</em> keychain, open it, expand <strong>Trust</strong>, and set
+<strong>Secure Sockets Layer (SSL)</strong> to <em>Always Trust</em>. Or do it in one
+command:</p>
+
+<pre><code>security add-trusted-cert -r trustRoot -p ssl \
+  -k ~/Library/Keychains/login.keychain-db backloop.dev-cert.crt</code></pre>
+
+<p>Setting the SSL policy rather than blanket trust keeps it to TLS and nothing else.
+Safari and Chrome pick this up.</p>
+
+<div class="card warn">
+<p style="margin-top:0"><strong>To remove it later, run this, and run it first:</strong></p>
+<pre style="margin-bottom:0.75rem"><code>security remove-trusted-cert backloop.dev-cert.crt</code></pre>
+<p style="margin-bottom:0">Deleting the certificate from Keychain Access, by dragging it
+to the trash or with <code>security delete-certificate</code>, is <strong>not
+enough</strong>. The trust setting is stored separately, keyed by the certificate, and it
+survives the certificate being deleted. Your machine goes on trusting this certificate
+even though it appears to be gone, and <code>security dump-trust-settings</code> will
+report nothing while that is happening. Measured on macOS 26. Remove the trust first,
+then delete the certificate if you want to.</p>
+</div>
+
+<h3>Windows</h3>
+
+<p>Right-click the file, choose <strong>Install Certificate</strong>, pick
+<strong>Current User</strong>, then <strong>Place all certificates in the following
+store</strong> and browse to <strong>Trusted Root Certification Authorities</strong>.
+Chrome and Edge use this store. Or, in a terminal:</p>
+
+<pre><code>certutil -addstore -user Root backloop.dev-cert.crt</code></pre>
+
+<p>To undo it, open <code>certmgr.msc</code>, find <code>*.backloop.dev</code> under
+Trusted Root Certification Authorities, and delete it.</p>
+
+<h3>Linux</h3>
+
+<pre><code>sudo cp backloop.dev-cert.crt /usr/local/share/ca-certificates/backloop.dev.crt
+sudo update-ca-certificates</code></pre>
+
+<p>That covers curl and most command-line tools. Chrome on Linux keeps its own store, so
+add it there too with <code>certutil -d sql:$HOME/.pki/nssdb -A -t "C,," -n backloop.dev
+-i backloop.dev-cert.crt</code>.</p>
+
+<h3>Firefox</h3>
+
+<p>Firefox does not use the system trust store, and it will not accept this certificate as
+an authority, because it deliberately is not one. Firefox will show a warning and let you
+add an exception per hostname. If you use Firefox as your main development browser, you
+will be better served by <a href="#your-own">your own certificate</a>.</p>
+
+<h2>Check what you installed</h2>
+
+<p>The SHA-256 fingerprint of the certificate published here:</p>
+
+<div class="card"><span class="fp">A6:EE:0D:5E:23:D0:2F:CC:F0:66:D6:03:BC:C9:C6:01:7B:B9:BD:62:E6:75:A3:EF:43:1D:D5:61:EB:36:CA:F1</span></div>
+
+<pre><code>openssl x509 -in backloop.dev-cert.crt -noout -fingerprint -sha256</code></pre>
+
+<table>
+  <tr><th>Covers</th><td><code>*.backloop.dev</code> and <code>backloop.dev</code></td></tr>
+  <tr><th>Expires</th><td>4 September 2036</td></tr>
+  <tr><th>Type</th><td>Self-signed leaf, <code>CA:FALSE</code>, <code>serverAuth</code> only</td></tr>
+</table>
+
+<p>Ten years, because rotating costs everyone who installed it a second trip through this
+page. When the time comes, a replacement is published here and the package announces it at
+start-up months beforehand.</p>
+
+<h2 id="your-own">Using your own certificate instead</h2>
+
+<p>Better in every way if you can: nobody else holds the key, Firefox works, and there is
+nothing to trust that you did not create. <a href="https://github.com/FiloSottile/mkcert">mkcert</a>
+sets up a local authority and issues from it:</p>
+
+<pre><code>mkcert -install
+mkcert '*.backloop.dev' backloop.dev</code></pre>
+
+<p>Then point the package at what it produced, and it will not download anything:</p>
+
+<pre><code>export BACKLOOP_DEV_CERT=/path/to/_wildcard.backloop.dev+1.pem
+export BACKLOOP_DEV_KEY=/path/to/_wildcard.backloop.dev+1-key.pem</code></pre>
+
+<p>A <code>backloop.dev.json</code> file in your project does the same thing, and there are
+a couple of other ways to arrange it. The
+<a href="https://github.com/perki/backloop.dev-node#bringing-your-own-certificate">package
+README</a> lists them.</p>
+
+<footer>
+  <p><a href="/">What happened to backloop.dev</a> &middot;
+     <a href="https://github.com/perki/backloop.dev">Repository</a> &middot;
+     <a href="/llms.txt">llms.txt</a></p>
+</footer>
+
+</div>
+</body>
+</html>

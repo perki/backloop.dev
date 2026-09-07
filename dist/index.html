@@ -357,6 +357,18 @@ mkcert '*.backloop.dev' backloop.dev</code></pre>
     <code>/etc/hosts</code> editing, and no public certificate anywhere in
     it. That is the closest thing to what this site used to hand out, and nothing about
     it can be revoked.</p>
+
+    <h3>If you cannot run mkcert</h3>
+
+    <p>Not everyone has a toolchain, and mkcert asks for one. So there is also a
+    <a href="public/">shared certificate you can simply install</a>: download a file,
+    trust it once, done. It is self-signed rather than issued by an authority, which is
+    precisely why nothing can revoke it this time.</p>
+
+    <p>The trade is that it is shared, and its private key is published with it, so
+    <a href="public/">that page</a> explains what you are accepting before you accept
+    it. It is a single certificate, not an authority, so it can never vouch for any name
+    other than <code>*.backloop.dev</code>. If you can run mkcert, run mkcert.</p>
   </section>
 
   <footer>

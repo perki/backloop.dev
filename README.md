@@ -10,15 +10,20 @@ Loopback domain and SSL certificates for HTTPS on localhost.
 > within about nine hours, Sectigo within about two days. The public service ended on
 > 2026-09-04 and <https://backloop.dev> now explains what happened in full.
 >
-> The project continues as a private setup used by its author. The code still works, but
-> downloading a certificate now requires a secret, and access is not open.
+> What no longer exists is a certificate browsers trust with nothing installed. The
+> tooling still works, and there are two ways to use it that need no secret at all:
+> bring a certificate of your own, or install the
+> [public self-signed one](https://backloop.dev/public/) once per machine. The private
+> setup behind a secret continues for its author's projects, and access to that is not
+> open.
 >
-> **Looking for HTTPS on localhost?** Use a local certificate authority:
-> [mkcert](https://github.com/FiloSottile/mkcert),
+> **Looking for HTTPS on localhost?** [mkcert](https://github.com/FiloSottile/mkcert),
 > [Caddy's internal CA](https://caddyserver.com/docs/automatic-https#local-https), or
-> [vite-plugin-mkcert](https://github.com/liuweiGL/vite-plugin-mkcert). All install a
-> root into your trust store — the trade-off backloop.dev existed to avoid, and the
-> only one a public authority is not obliged to break.
+> [vite-plugin-mkcert](https://github.com/liuweiGL/vite-plugin-mkcert) are the best
+> answer if you can run them. All install a root into your trust store, which is the
+> trade-off backloop.dev existed to avoid, and the only one a public authority is not
+> obliged to break. Pair any of them with `*.backloop.dev`, whose DNS is still live, and
+> you get clean wildcard hostnames on loopback with no `/etc/hosts` editing.
 
 ## Why it existed
 
@@ -62,11 +67,19 @@ the repository is where this is heading:
 npm install github:perki/backloop.dev-node#v5.0.0
 ```
 
-Certificates are downloaded from a path only reachable with a secret. If you have one,
-[the package README](https://github.com/perki/backloop.dev-node#configuring-the-secret) covers the places it can be
-configured. If you do not, the package installs cleanly and prints a notice rather than
-failing — but it cannot fetch a certificate, and there is no way to request one. Use one
-of the local-CA tools above instead.
+Where the certificate comes from, first match winning:
+
+1. **One you supplied.** `BACKLOOP_DEV_CERT` and `BACKLOOP_DEV_KEY`, or three other
+   routes the [package README](https://github.com/perki/backloop.dev-node#bringing-your-own-certificate)
+   lists. Nothing is downloaded and nobody else holds the key.
+2. **A secret**, for the private setup. [How to configure one](https://github.com/perki/backloop.dev-node#configuring-the-secret)
+   if you hold it. There is no way to request one.
+3. **The [public certificate](https://backloop.dev/public/)**, shared and self-signed,
+   which is what you get otherwise. Browsers reject it until you install it once per
+   machine, and that page explains both how and what you are accepting.
+
+A secret that is configured but fails is an error and never quietly falls back to the
+public certificate.
 
 Already hold the certificate files? Point `BACKLOOP_DEV_CERTS_DIR` at a directory
 containing a valid `pack.json` and no secret is needed at all.

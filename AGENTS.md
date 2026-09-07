@@ -29,7 +29,8 @@ Three rules follow, and they matter more than anything else in this file:
    *get* one is not.
 3. **The apex site says the project is discontinued and stops there.** `dist/index.html`,
    `llms.txt` and `llms-full.txt` must not mention secrets, private access, or any way to
-   get in touch about it.
+   get in touch about it. Pointing at `dist/public/` is fine and intended: that certificate
+   is for everybody and needs no secret, so describing it gives nothing away.
 
 What this buys, so it is not oversold: it stops the automated key scanners and CT-log
 crawlers that found the key within hours, twice. It does **not** make the setup
@@ -52,8 +53,10 @@ What remains here:
 
 | Path | What it is |
 |---|---|
-| `dist/` | The https://backloop.dev website, **copied by hand onto the Apache server at Gandi** — there is no deploy automation. The four authored files (`index.html`, `llms.txt`, `llms-full.txt`, `robots.txt`) are committed, because they have no other source and losing `dist/` would lose them for good. Everything else under `dist/` is gitignored by an allowlist, so a `dist/<secret>/` certificate directory can never be committed by accident. |
+| `dist/` | The https://backloop.dev website, **copied by hand onto the Apache server at Gandi** — there is no deploy automation. The five authored files (`index.html`, `llms.txt`, `llms-full.txt`, `robots.txt`, `public/index.html`) are committed, because they have no other source and losing `dist/` would lose them for good. Everything else under `dist/` is gitignored by an allowlist, so neither a `dist/<secret>/` certificate directory nor the public certificate's key can be committed by accident. |
+| `dist/public/` | The shared self-signed certificate and its install page. Deliberately public: it is the answer for anyone without a secret. |
 | `tools/build-pack.js` | Builds a `dist/<secret>/` directory from a commercial CA delivery. No dependencies, no secrets — delivery, key and destination are arguments. |
+| `tools/build-public-pack.js` | Generates the shared self-signed certificate served at `dist/public/`. Refuses to write anything that is not a `CA:FALSE` leaf. |
 | `tools/set-notice.js` | Sets or clears the `notice` in a published `pack.json` — the one channel that reaches installed copies. |
 | `tools/setup.sh` | Clones both package repositories into `packages/`, installs them, links the plugin against the local node checkout. |
 | `packages/` | Development checkouts of the two package repositories. Gitignored; they have their own remotes. |
@@ -131,6 +134,49 @@ loads both packages, and each saying the same thing gave sixteen lines. Whicheve
 first claims `Symbol.for('backloop.dev.distributionWarningShown')` on `globalThis` and the
 other stays quiet — change that symbol name in one repository and you must change it in
 the other.
+
+## The public certificate
+
+Since 2026-09-07 the package is useful again to people with no secret, which is most
+people. `https://backloop.dev/public/pack.json` serves a shared, self-signed certificate
+for `*.backloop.dev`, published with its private key exactly as the old public service
+was. The difference is the one that matters: **no certificate authority issued it, so no
+authority can be obliged to revoke it.** §4.9.1.1 binds authorities, and there is no
+authority here to bind.
+
+The cost is that browsers reject it until somebody installs it, once per machine, which
+is what `dist/public/index.html` is for. That is a real cost and the page says so rather
+than glossing it.
+
+**It is a leaf and must stay one.** `CA:FALSE`, `serverAuth` only. A root certificate
+whose private key is public would let anyone holding that key mint a certificate for any
+hostname at all, for every person who installed it: their bank, their mail, everything.
+As a leaf, the worst case is impersonating `*.backloop.dev` origins, which already point
+at loopback and which `/etc/hosts` pinning already covers. Every tutorial teaches
+root-plus-leaf because that is correct when the root key stays local, so the wrong shape
+is the one somebody will reach for by default. `tools/build-public-pack.js` refuses to
+write anything else, and that refusal is load-bearing.
+
+Measured on macOS 26 on 2026-09-07, and worth not rediscovering:
+
+- A user-installed self-signed **leaf** is accepted as a trust anchor. Chrome and Safari
+  both load it clean once `security add-trusted-cert -p ssl` has run.
+- **Apple's 825-day ceiling does not apply to it.** A 3650-day certificate verifies and
+  loads with no warning, the same carve-out Apple states explicitly for the later
+  398-day rule. So the certificate is issued for ten years: rotation costs every
+  installed user a manual reinstall, and there is no revocation to force one.
+- **Firefox will not take it.** It uses its own store and will not accept a non-CA as an
+  authority. Documented as a limitation on the install page, not worked around.
+- **Removing it needs `security remove-trusted-cert`, and nothing else does the job.**
+  `security delete-certificate` removes the certificate from the keychain and leaves the
+  trust setting behind, so the machine keeps trusting a certificate that is no longer
+  there. `security dump-trust-settings` reports "No Trust Settings were found" the entire
+  time, so it cannot be used to confirm removal. Verified both ways by serving the
+  certificate and loading it in Chrome. The install page leads with this, because a user
+  who cannot undo an install of a published private key has a real problem.
+
+Rotating means everyone reinstalls. Announce it through the pack's `notice` field months
+ahead, and remember `notice` only reaches 4.1.0 and later.
 
 ## The old certificate is still served, on purpose
 
